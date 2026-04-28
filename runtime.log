@@ -1,69 +1,8 @@
-(.venv) C:\Users\trung\Downloads\file install\Loi\tiktok-beta>python "src\main.py"
-
-=======================================================
-  🎬  QUIIN VIDEO PROCESSOR  —  Chọn quy trình
-=======================================================
-
-  [1] Tự động gắn sub CÓ dịch thuật
-       Download → Xóa watermark → Transcribe → Sửa typo → Dịch → Burn sub
-
-  [2] Tự động gắn sub KHÔNG dịch thuật
-       Download → Xóa watermark → Transcribe → Sửa typo → Burn sub
-
--------------------------------------------------------
-  Nhập số thứ tự quy trình và nhấn Enter: 2
-
-  ✅ Bắt đầu quy trình: [2] Tự động gắn sub KHÔNG dịch thuật
-
-ℹ️  Chế độ xử lý: GPU (CUDA)
-📋 Tổng số link cần xử lý: 1
-
-============================================================
-🔗 [1/1] Đang xử lý: https://youtu.be/70XSafYpaAA?si=mNl28BE6PeAafe7b
-============================================================
-
-📁 Thư mục đầu ra: data\video\output\vid-70XSafYpaAA-20260428_155551
-
---- BƯỚC 0: TẢI VIDEO ---
-📥 Đang tải video (720p) từ: https://youtu.be/70XSafYpaAA?si=mNl28BE6PeAafe7b
-[youtube] Extracting URL: https://youtu.be/70XSafYpaAA?si=mNl28BE6PeAafe7b
-[youtube] 70XSafYpaAA: Downloading webpage
-WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one
-[youtube] 70XSafYpaAA: Downloading android vr player API JSON
-[info] 70XSafYpaAA: Downloading 1 format(s): 398+140
-[download] Destination: data\video\output\vid-70XSafYpaAA-20260428_155551\download\70XSafYpaAA.f398.mp4
-[download] 100% of  141.24MiB in 00:00:07 at 19.81MiB/s
-[download] Destination: data\video\output\vid-70XSafYpaAA-20260428_155551\download\70XSafYpaAA.f140.m4a
-[download] 100% of   25.56MiB in 00:00:00 at 25.63MiB/s
-[Merger] Merging formats into "data\video\output\vid-70XSafYpaAA-20260428_155551\download\70XSafYpaAA.mp4"
-Deleting original file data\video\output\vid-70XSafYpaAA-20260428_155551\download\70XSafYpaAA.f140.m4a (pass -k to keep)
-Deleting original file data\video\output\vid-70XSafYpaAA-20260428_155551\download\70XSafYpaAA.f398.mp4 (pass -k to keep)
-✅ Tải xong: data\video\output\vid-70XSafYpaAA-20260428_155551\download\70XSafYpaAA.mp4
-
---- Bước 1: XÓA WATERMARK ---
-  → Vùng xóa watermark: x=1111, y=3, w=162, h=161 px
-  → Encoder: h264_nvenc (GPU)
-  ✅ Xóa watermark: 100%                                    KiB
-  → Đã lưu: data\video\output\vid-70XSafYpaAA-20260428_155551\video_no_watermark.mp4
-
---- BƯỚC 2: TÁCH ÂM THANH ---
-  ✅ Tách audio: 100%
-
-  → Đã lưu: data\video\output\vid-70XSafYpaAA-20260428_155551\audio_tmp.m4a
-
---- BƯỚC 3: PHÂN TÍCH GIỌNG NÓI ---
-  → Đang tải model Whisper large-v3 (CUDA / float16) | ngôn ngữ: ja...
-  → Đang phân tích âm thanh...
-
-  Ngôn ngữ phát hiện: ja (100%)
-  Tổng thời lượng   : 1656.1s
+[ 98%] [00:27:08,390 → 00:27:12,970]  その積み重ねが守るべきなんか静かに支えていく
+  [ 98%] [00:27:12,970 → 00:27:16,769]  これからも穏やかに利はと向き合い
+  [ 98%] [00:27:16,769 → 00:27:18,789]  育てる喜びを感じてほしい
+  [ 99%] [00:27:18,789 → 00:27:21,029]  どうか良い園芸の時間を
   ────────────────────────────────────────────────────────────
-
-❌ Lỗi trong quá trình giải mã: Library cublas64_12.dll is not found or cannot be loaded
-
-❌ Lỗi khi xử lý link [https://youtu.be/70XSafYpaAA?si=mNl28BE6PeAafe7b]: Library cublas64_12.dll is not found or cannot be loaded
-⏭️  Bỏ qua link này, chuyển sang link tiếp theo...
-
-✅ Đã xử lý xong tất cả các link.
+  [100%] Hoàn tất transcribe → data\video\output\vid-70XSafYpaAA-20260428_161735\raw_subtitle.srt
 
 (.venv) C:\Users\trung\Downloads\file install\Loi\tiktok-beta>
