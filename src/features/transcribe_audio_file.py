@@ -129,8 +129,15 @@ def transcribe_audio(
         if exit_code == 0 and os.path.exists(srt_output_path):
             return srt_output_path
 
-        # Subprocess crash (CUDA teardown) hoặc lỗi → fallback CPU
-        print(f"\n  ⚠️  GPU subprocess kết thúc bất thường (exit code: {exit_code})")
+        # Subprocess crash — nhưng kiểm tra xem SRT đã được ghi thành công chưa
+        # (trường hợp phổ biến: CUDA teardown crash SAU KHI transcribe xong)
+        if os.path.exists(srt_output_path) and os.path.getsize(srt_output_path) > 0:
+            print(f"\n  ⚠️  GPU subprocess crash khi dọn dẹp (exit code: {exit_code})")
+            print("  ✅  Tuy nhiên SRT đã được ghi thành công → dùng kết quả GPU, bỏ qua lỗi.")
+            return srt_output_path
+
+        # SRT chưa có hoặc rỗng → fallback CPU
+        print(f"\n  ⚠️  GPU subprocess thất bại (exit code: {exit_code}), không có SRT output")
         print("  ⚠️  Tự động chuyển sang CPU để thử lại...\n")
         return _run_cpu_inline(audio_path, srt_output_path, language)
 
