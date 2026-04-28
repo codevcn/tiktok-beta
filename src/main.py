@@ -31,6 +31,7 @@ def print_menu() -> None:
     print("\n" + "-" * 55)
 
 
+
 def get_user_choice() -> int:
     while True:
         try:
@@ -54,7 +55,7 @@ def main() -> None:
     choice = get_user_choice()
 
     flow = FLOWS[choice]
-    options: dict[str, bool] = flow["options"]
+    options: dict = dict(flow["options"])  # copy để không ảnh hưởng FLOWS gốc
 
     print(f"\n  ✅ Bắt đầu quy trình: [{choice}] {flow['name']}\n")
 

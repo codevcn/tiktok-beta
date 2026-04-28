@@ -38,11 +38,13 @@ def process_one_link(link_entry: dict, base_output_dir: str, options: dict) -> N
             - "translate" (bool): Nếu True, thêm bước dịch SRT trước khi burn subtitle.
     """
     link = link_entry["link"]
+    original_lang_code = link_entry.get("original-lang-code")  # None = tự detect
     target_lang_code = link_entry.get("target-lang-code", "vi")
     subtitle_configs = link_entry.get("subtitle-configs", {})
     watermark_config = link_entry.get("watermark")  # None nếu không có field này
 
     do_translate: bool = bool(options.get("translate", False))
+    use_gpu: bool = bool(options.get("use_gpu", False))
 
     # Tạo thư mục output riêng cho link này theo timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -69,8 +71,8 @@ def process_one_link(link_entry: dict, base_output_dir: str, options: dict) -> N
 
     # --- Bước 1: Xóa watermark (nếu có cấu hình) ---
     if watermark_config:
-        print("\n--- BƯỚC 1: XÓA WATERMARK ---")
-        remove_watermark(video_in_path, video_no_wm_path, watermark_config)
+        print("\n--- Bước 1: XÓA WATERMARK ---")
+        remove_watermark(video_in_path, video_no_wm_path, watermark_config, use_gpu=use_gpu)
         video_in_path = video_no_wm_path
     else:
         print("\nℹ️  Không có cấu hình watermark → bỏ qua bước xóa watermark.")
@@ -81,7 +83,7 @@ def process_one_link(link_entry: dict, base_output_dir: str, options: dict) -> N
 
     # --- Bước 3: Transcribe giọng nói → SRT thô ---
     print("\n--- BƯỚC 3: PHÂN TÍCH GIỌNG NÓI ---")
-    transcribe_audio(audio_tmp_path, srt_raw_path)
+    transcribe_audio(audio_tmp_path, srt_raw_path, language=original_lang_code, use_gpu=use_gpu)
 
     # --- Bước 4: Sửa lỗi chính tả SRT bằng AI ---
     print("\n--- BƯỚC 4: SỬA LỖI CHÍNH TẢ BẰNG AI ---")
@@ -131,6 +133,12 @@ def main(options: dict) -> None:
     # 2. Đọc file links.json
     links_json_path = os.path.join("data", "video", "input", "links.json")
     config = load_links_config(links_json_path)
+
+    # Đọc cấu hình GPU từ cấp top-level của links.json
+    use_gpu: bool = bool(config.get("use-gpu", False))
+    gpu_label = "GPU (CUDA)" if use_gpu else "CPU"
+    print(f"ℹ️  Chế độ xử lý: {gpu_label}")
+    options["use_gpu"] = use_gpu
 
     links = config.get("links", [])
     if not links:

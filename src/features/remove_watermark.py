@@ -7,10 +7,19 @@ import subprocess
 from features.utils import run_ffmpeg_with_progress
 
 
-def remove_watermark(video_in_path: str, video_out_path: str, watermark_config: dict) -> str:
+def remove_watermark(
+    video_in_path: str,
+    video_out_path: str,
+    watermark_config: dict,
+    use_gpu: bool = False,
+) -> str:
     """
     Xóa watermark khỏi video bằng ffmpeg delogo filter.
     Tọa độ từ links.json: x1, y1 (góc trên trái), x2, y2 (góc dưới phải).
+
+    Args:
+        use_gpu: True → encode bằng h264_nvenc (NVIDIA GPU);
+                 False → encode bằng libx264 (CPU).
     """
     if not os.path.exists(video_in_path):
         raise FileNotFoundError(f"Không tìm thấy file video: {video_in_path}")
@@ -35,13 +44,19 @@ def remove_watermark(video_in_path: str, video_out_path: str, watermark_config: 
 
     print(f"  → Vùng xóa watermark: x={x1}, y={y1}, w={w}, h={h} px")
 
+    if use_gpu:
+        # NVIDIA GPU encoder — preset p4 (cân bằng tốc độ/chất lượng), CQ tương đương CRF 23
+        encoder_args = ["-c:v", "h264_nvenc", "-preset", "p4", "-cq", "23"]
+        print("  → Encoder: h264_nvenc (GPU)")
+    else:
+        encoder_args = ["-c:v", "libx264", "-preset", "fast", "-crf", "23"]
+        print("  → Encoder: libx264 (CPU)")
+
     command = [
         "ffmpeg", "-y",
         "-i", video_in_path,
         "-vf", f"delogo=x={x1}:y={y1}:w={w}:h={h}",
-        "-c:v", "libx264",
-        "-preset", "fast",
-        "-crf", "23",
+        *encoder_args,
         "-c:a", "copy",
         video_out_path,
     ]
@@ -54,3 +69,4 @@ def remove_watermark(video_in_path: str, video_out_path: str, watermark_config: 
         print("❌ FFmpeg báo lỗi khi xóa watermark:")
         print(e.stderr)
         raise
+

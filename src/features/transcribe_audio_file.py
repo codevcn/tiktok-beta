@@ -20,18 +20,39 @@ def format_time_srt(seconds: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:02d},{millis:03d}"
 
 
-def transcribe_audio(audio_path: str, srt_output_path: str) -> str:
+def transcribe_audio(
+    audio_path: str,
+    srt_output_path: str,
+    language: str | None = None,
+    use_gpu: bool = False,
+) -> str:
+    """
+    Transcribe file audio thành SRT.
+
+    Args:
+        audio_path: Đường dẫn file audio đầu vào.
+        srt_output_path: Đường dẫn file SRT đầu ra.
+        language: Mã ngôn ngữ ISO 639-1 (ví dụ "vi", "ja", "en").
+                  None → Whisper tự động phát hiện ngôn ngữ.
+        use_gpu: True → dùng CUDA (float16); False → dùng CPU (int8).
+    """
     if not os.path.exists(audio_path):
         raise FileNotFoundError(f"Không tìm thấy file: {audio_path}")
 
-    print("  → Đang tải model Whisper large-v3 (CPU / int8)...")
-    model = WhisperModel("large-v3", device="cpu", compute_type="int8")
+    if use_gpu:
+        device, compute_type = "cuda", "float16"
+    else:
+        device, compute_type = "cpu", "int8"
+
+    lang_label = language if language else "auto-detect"
+    print(f"  → Đang tải model Whisper large-v3 ({device.upper()} / {compute_type}) | ngôn ngữ: {lang_label}...")
+    model = WhisperModel("large-v3", device=device, compute_type=compute_type)
 
     print("  → Đang phân tích âm thanh...\n")
     segments, info = model.transcribe(
         audio_path,
         beam_size=5,
-        language="vi",
+        language=language,  # None = tự detect
         vad_filter=True,
         vad_parameters=dict(min_silence_duration_ms=500),
     )
@@ -61,3 +82,4 @@ def transcribe_audio(audio_path: str, srt_output_path: str) -> str:
     except Exception as e:
         print(f"\n❌ Lỗi trong quá trình giải mã: {e}")
         raise
+

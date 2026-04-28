@@ -1,8 +1,10 @@
 {
   "parallel-execution": false,
+  "use-gpu": true,
   "links": [
     {
       "link": "https://youtu.be/70XSafYpaAA?si=mNl28BE6PeAafe7b",
+      "original-lang-code": "ja",
       "target-lang-code": "ja",
       "subtitle-configs": {
         "fontname": "Arial",

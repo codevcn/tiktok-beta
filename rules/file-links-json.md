@@ -33,6 +33,7 @@ This file contains the configuration for the video processing tool. It specifies
 - Explanation:
   - "parallel-execution": If true, the tool will process all links in the "links" array in parallel. If false, it will process them sequentially.
   - "links": An array of video links to process.
+  - "original-lang-code": The original language code of the video in standard ISO 639-1. If not provided, the tool will try to detect it automatically.
   - "target-lang-code": The target language code for the translated subtitle in standard ISO 639-1.
   - "subtitle-configs": An object containing the subtitle configuration.
     - "fontname": The font name for the subtitle.
