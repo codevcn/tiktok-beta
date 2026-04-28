@@ -1,11 +1,23 @@
 import os
+import sys
 
-# --- BẮT ĐẦU ÉP ĐƯỜNG DẪN DLL VÀO HỆ THỐNG ---
-venv_path = os.path.join(os.getcwd(), ".venv", "Lib", "site-packages")
-cublas_bin = os.path.join(venv_path, "nvidia", "cublas", "bin")
-cudnn_bin = os.path.join(venv_path, "nvidia", "cudnn", "bin")
-os.environ["PATH"] = f"{cublas_bin};{cudnn_bin};" + os.environ.get("PATH", "")
-# ------------------------------------------------
+# --- ĐẢM BẢO WINDOWS TÌM THẤY NVIDIA DLL KHI DÙNG GPU ---
+# os.environ["PATH"] không đủ tin cậy trên Windows để load DLL lúc runtime.
+# os.add_dll_directory() mới là cách chính xác (Python 3.8+, Windows only).
+_venv_site = os.path.join(os.getcwd(), ".venv", "Lib", "site-packages")
+_nvidia_dll_dirs = [
+    os.path.join(_venv_site, "nvidia", "cublas",       "bin"),
+    os.path.join(_venv_site, "nvidia", "cudnn",        "bin"),
+    os.path.join(_venv_site, "nvidia", "cuda_runtime", "bin"),
+    os.path.join(_venv_site, "nvidia", "cufft",        "bin"),
+]
+for _d in _nvidia_dll_dirs:
+    if os.path.isdir(_d):
+        os.environ["PATH"] = _d + ";" + os.environ.get("PATH", "")
+        if sys.platform == "win32":
+            os.add_dll_directory(_d)
+# ---------------------------------------------------------
+
 
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
