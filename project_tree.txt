@@ -1,0 +1,35 @@
+Tree view of: D:\D-Documents\TOOLs\tiktok-beta
+
+├── .env
+├── .gitignore
+├── data
+│   └── video
+│       ├── input
+│       │   └── links.json
+│       └── output
+│           └── vid-70XSafYpaAA-20260428_014226
+│               └── download
+│                   └── 枯れたように見える植物も蘇る！すぐ効く自然肥料5選。昔の農家の秘密で植物がよみがえる、お金は一切かからない.mp4
+├── dev.cmd
+├── doc
+│   └── lang-code.md
+├── ins.cmd
+├── print_project_tree.py
+├── project_tree.txt
+├── requirements.txt
+├── rules
+│   ├── file-links-json.md
+│   └── translate-prompt.md
+├── runtime.log
+├── src
+│   ├── auto_burn_sub_to_video_no_translate.py
+│   ├── auto_burn_sub_to_video_with_translate.py
+│   ├── features
+│   │   ├── burn_ass_subtitle.py
+│   │   ├── extract_audio_from_video.py
+│   │   ├── fix_transcribe_typos.py
+│   │   ├── remove_watermark.py
+│   │   ├── transcribe_audio_file.py
+│   │   └── translate_srt.py
+│   └── main.py
+└── venv.cmd

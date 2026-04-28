@@ -1,0 +1,9 @@
+
+# Auto-added by setup_venv_in_project.py
+.env
+venv/
+.venv/
+__pycache__/
+*.pyc
+dev
+output

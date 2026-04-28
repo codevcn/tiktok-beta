@@ -1,0 +1,72 @@
+(.venv) D:\D-Documents\TOOLs\tiktok-beta>python "src\main.py"
+🎬 Đã chọn video đầu vào: data\video\input\video-210426-5h54PM.mp4
+📁 Đã tạo thư mục đầu ra: data\video\output\video-210426-5h54PM.mp4--autoburn--20260423_023010
+
+--- BƯỚC 1: TÁCH ÂM THANH ---
+Đã tách audio thành công: data\video\output\video-210426-5h54PM.mp4--autoburn--20260423_023010\audio_tmp.m4a
+
+--- BƯỚC 2: PHÂN TÍCH GIỌNG NÓI ---
+⏳ Đang tải model Whisper (Chế độ CPU)...
+🎙️ Đang phân tích âm thanh...
+
+✅ Ngôn ngữ: vi (100%)
+============================================================
+[00:00:00,000 --> 00:00:04,440]  Cô gái này, thân là trưởng nữ của một gia tộc quý phái, lại bị chính em gái mình xe bảo như người ở.
+[00:00:04,620 --> 00:00:08,980]  Cha cô trông thấy chẳng những không ngăn cản, mà còn mặc kệ cho đứa con gái thứ hai tiếp tục ngang ngược, bá đạo.
+[00:00:09,199 --> 00:00:12,919]  Tất cả chỉ vì cô không được thừa hưởng dị năng của gia tộc, còn mẹ ruột thì mất sớm.
+[00:00:12,939 --> 00:00:17,699]  Nhưng chuỗi ngày hầu hạ mẹ kế và em gái sắp kết thúc khi cha cô quyết định gả cô cho một gia tộc dị năng xa lạ.
+[00:00:17,940 --> 00:00:21,739]  Thật không thể tưởng tượng nổi, của hồi môn của cô chỉ có độc một chức lực cũ kỹ, sức mẻ.
+[00:00:21,739 --> 00:00:25,640]  Lời đồn rằng, trưởng nam của gia tộc kia tính tình quái gở, dung mạo cực kỳ đáng sợ.
+[00:00:25,800 --> 00:00:29,539]  Mọi vị hôn thê trước đây đều có kết cục thê thảm, không bị đuổi đi thì cũng bị cho đăng xuất.
+Đã lưu SRT tại: data\video\output\video-210426-5h54PM.mp4--autoburn--20260423_023010\raw_subtitle.srt
+
+--- BƯỚC 3: SỬA LỖI CHÍNH TẢ BẰNG AI ---
+🤖 Đang gửi phụ đề cho AI để sửa lỗi chính tả, vui lòng đợi vài giây...
+✅ Đã hoàn tất AI sửa lỗi và lưu tại: data\video\output\video-210426-5h54PM.mp4--autoburn--20260423_023010\fixed_subtitle.srt
+
+--- BƯỚC 4: GHÉP PHỤ ĐỀ VÀO VIDEO ---
+⏳ Đang chuyển đổi SRT sang ASS và áp dụng định dạng...
+✅ Đã tạo thành công file: data\video\output\video-210426-5h54PM.mp4--autoburn--20260423_023010\fixed_subtitle.ass
+🎙️ Đang tiến hành ghép phụ đề vào video bằng CPU (quá trình này sẽ mất chút thời gian)...
+
+❌ Lỗi FFmpeg! Đây là thông báo lỗi chi tiết từ hệ thống:
+ffmpeg version 8.0.1-essentials_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-openal --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      60.  8.100 / 60.  8.100
+  libavcodec     62. 11.100 / 62. 11.100
+  libavformat    62.  3.100 / 62.  3.100
+  libavdevice    62.  1.100 / 62.  1.100
+  libavfilter    11.  4.100 / 11.  4.100
+  libswscale      9.  1.100 /  9.  1.100
+  libswresample   6.  1.100 /  6.  1.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'data\video\input\video-210426-5h54PM.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomav01iso2mp41
+    encoder         : Lavf62.13.101
+  Duration: 00:00:30.00, start: 0.000000, bitrate: 1015 kb/s
+  Stream #0:0[0x1](und): Video: av1 (libaom-av1) (Main) (av01 / 0x31307661), yuv420p(tv, bt709), 1920x1080 [SAR 1:1 DAR 16:9], 877 kb/s, 60 fps, 60 tbr, 15360 tbn (default)
+    Metadata:
+      handler_name    : ISO Media file produced by Google Inc.
+      vendor_id       : [0][0][0][0]
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
+    Metadata:
+      handler_name    : ISO Media file produced by Google Inc.
+      vendor_id       : [0][0][0][0]
+[Parsed_ass_0 @ 0000021dd3dcbfc0] libass API version: 0x1704000
+[Parsed_ass_0 @ 0000021dd3dcbfc0] libass source: commit: 0.17.4-16-ge60dddb7db62cc009175843bdb0b0dfedceebedb
+[Parsed_ass_0 @ 0000021dd3dcbfc0] Shaper: FriBidi 1.0.16 (SIMPLE) HarfBuzz-ng 12.2.0 (COMPLEX)
+[Parsed_ass_0 @ 0000021dd3dcbfc0] Using font provider directwrite (with GDI)
+[Parsed_ass_0 @ 0000021dd3dcbfc0] ass_read_file(fixed_subtitle.ass): fopen failed
+[Parsed_ass_0 @ 0000021dd3dcbfc0] Could not create a libass track when reading file 'fixed_subtitle.ass'
+[AVFilterGraph @ 0000021dd3da2340] Error initializing filters
+Error opening output file data\video\output\video-210426-5h54PM.mp4--autoburn--20260423_023010\output_video.mp4.
+Error opening output files: Invalid argument
+
+
+❌ Lỗi hệ thống: Command '['ffmpeg', '-y', '-i', 'data\\video\\input\\video-210426-5h54PM.mp4', '-vf', "ass='fixed_subtitle.ass'", '-c:v', 'libx264', '-preset', 'fast', '-crf', '23', '-c:a', 'copy', 'data\\video\\output\\video-210426-5h54PM.mp4--autoburn--20260423_023010\\output_video.mp4']' returned non-zero exit status 4294967274.
+Dừng luồng thực thi.
+
+(.venv) D:\D-Documents\TOOLs\tiktok-beta>

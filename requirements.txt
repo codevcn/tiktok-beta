@@ -1,0 +1,4 @@
+pysubs2
+google-genai
+faster-whisper
+yt-dlp

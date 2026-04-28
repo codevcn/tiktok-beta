@@ -1,0 +1,29 @@
+{
+  "parallel-execution": false,
+  "links": [
+    {
+      "link": "https://youtu.be/70XSafYpaAA?si=mNl28BE6PeAafe7b",
+      "target-lang-code": "ja",
+      "subtitle-configs": {
+        "fontname": "Arial",
+        "fontsize": 24,
+        "primarycolor": "255,255,0",
+        "outlinecolor": "0,0,0",
+        "backcolor": "0,0,0,128",
+        "outline": 2.0,
+        "shadow": 1.0,
+        "bold": true,
+        "alignment": "BOTTOM_CENTER",
+        "marginv": 20,
+        "marginl": 0,
+        "marginr": 0
+      },
+      "watermark": {
+        "x1": 3372,
+        "y1": 20,
+        "x2": 3832,
+        "y2": 477
+      }
+    }
+  ]
+}
