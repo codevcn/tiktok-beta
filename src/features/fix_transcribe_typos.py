@@ -3,7 +3,7 @@ Sửa lỗi typo trong 1 file srt.
 """
 
 import os
-from google import genai
+from features.ai_client import generate_with_failover, clean_markdown_response
 
 
 def get_prompt(srt_text: str) -> str:
@@ -51,42 +51,22 @@ Now process this SRT content:
 
 
 def fix_typos_in_srt(input_srt_path: str, output_srt_path: str) -> str:
-    api_key = os.environ.get("GOOGLE_API_KEY")
-    if not api_key:
-        raise ValueError(
-            "Lỗi: Không tìm thấy biến môi trường GOOGLE_API_KEY. Vui lòng cấu hình ở file .env"
-        )
-
-    client = genai.Client(api_key=api_key)
-
     if not os.path.exists(input_srt_path):
         raise FileNotFoundError(f"Không tìm thấy file: {input_srt_path}")
 
     with open(input_srt_path, "r", encoding="utf-8") as f:
         srt_content = f.read()
 
-    print("🤖 [HTTP → Gemini] Đang gửi phụ đề để sửa lỗi chính tả... (vui lòng đợi)")
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=get_prompt(srt_content),
-        )
+    print("🤖 Đang gửi phụ đề để sửa lỗi chính tả...")
 
-        result_text = (response.text or "").strip()
-        # Loại bỏ markdown nếu AI lỡ sinh ra
-        if result_text.startswith("```"):
-            lines = result_text.splitlines()
-            if lines:
-                lines = lines[1:]  # Bỏ dòng đầu chứa ```
-            if lines and lines[-1].startswith("```"):
-                lines = lines[:-1]  # Bỏ dòng cuối
-            result_text = "\n".join(lines).strip()
+    result_text = generate_with_failover(
+        prompt=get_prompt(srt_content),
+        task_label="Sửa lỗi chính tả",
+    )
+    result_text = clean_markdown_response(result_text)
 
-        with open(output_srt_path, "w", encoding="utf-8") as f:
-            f.write(result_text)
+    with open(output_srt_path, "w", encoding="utf-8") as f:
+        f.write(result_text)
 
-        print(f"  ✅ [HTTP ← Gemini] Sửa lỗi hoàn tất → {output_srt_path}")
-        return output_srt_path
-    except Exception as e:
-        print(f"❌ Có lỗi trong quá trình sử dụng API: {e}")
-        raise
+    print(f"  ✅ Sửa lỗi hoàn tất → {output_srt_path}")
+    return output_srt_path

@@ -1,9 +1,9 @@
 """
-Dịch nội dung SRT sang ngôn ngữ đích bằng Gemini AI.
+Dịch nội dung SRT sang ngôn ngữ đích bằng AI.
 """
 
 import os
-from google import genai
+from features.ai_client import generate_with_failover, clean_markdown_response
 
 
 def get_translate_prompt(srt_text: str, target_lang_code: str) -> str:
@@ -56,7 +56,7 @@ Here is the SRT content to translate:
 
 def translate_srt(input_srt_path: str, output_srt_path: str, target_lang_code: str) -> str:
     """
-    Dịch nội dung file SRT sang ngôn ngữ đích bằng Gemini AI.
+    Dịch nội dung file SRT sang ngôn ngữ đích bằng AI.
 
     Args:
         input_srt_path: Đường dẫn file SRT đầu vào (đã sửa typo).
@@ -66,44 +66,22 @@ def translate_srt(input_srt_path: str, output_srt_path: str, target_lang_code: s
     Returns:
         Đường dẫn file SRT đã dịch.
     """
-    api_key = os.environ.get("GOOGLE_API_KEY")
-    if not api_key:
-        raise ValueError(
-            "Lỗi: Không tìm thấy biến môi trường GOOGLE_API_KEY. Vui lòng cấu hình ở file .env"
-        )
-
     if not os.path.exists(input_srt_path):
         raise FileNotFoundError(f"Không tìm thấy file: {input_srt_path}")
 
     with open(input_srt_path, "r", encoding="utf-8") as f:
         srt_content = f.read()
 
-    client = genai.Client(api_key=api_key)
+    print(f"🌐 Đang dịch phụ đề sang [{target_lang_code}]...")
 
-    print(f"🌐 [HTTP → Gemini] Đang dịch sang [{target_lang_code}]... (vui lòng đợi)")
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=get_translate_prompt(srt_content, target_lang_code),
-        )
+    result_text = generate_with_failover(
+        prompt=get_translate_prompt(srt_content, target_lang_code),
+        task_label=f"Dịch thuật → {target_lang_code}",
+    )
+    result_text = clean_markdown_response(result_text)
 
-        result_text = (response.text or "").strip()
+    with open(output_srt_path, "w", encoding="utf-8") as f:
+        f.write(result_text)
 
-        # Loại bỏ markdown nếu AI lỡ sinh ra
-        if result_text.startswith("```"):
-            lines = result_text.splitlines()
-            if lines:
-                lines = lines[1:]  # Bỏ dòng đầu chứa ```srt hoặc ```
-            if lines and lines[-1].startswith("```"):
-                lines = lines[:-1]  # Bỏ dòng cuối
-            result_text = "\n".join(lines).strip()
-
-        with open(output_srt_path, "w", encoding="utf-8") as f:
-            f.write(result_text)
-
-        print(f"  ✅ [HTTP ← Gemini] Dịch thuật hoàn tất → {output_srt_path}")
-        return output_srt_path
-
-    except Exception as e:
-        print(f"❌ Có lỗi trong quá trình dịch thuật: {e}")
-        raise
+    print(f"  ✅ Dịch thuật hoàn tất → {output_srt_path}")
+    return output_srt_path

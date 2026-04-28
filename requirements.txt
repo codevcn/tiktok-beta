@@ -2,6 +2,7 @@ pysubs2
 google-genai
 faster-whisper
 yt-dlp
+openai
 
 # --- NVIDIA CUDA 12 Libraries ---
 nvidia-cublas-cu12
