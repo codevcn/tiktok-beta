@@ -13,6 +13,8 @@ Pipeline tự động xử lý video từ links.json.
 
 import os
 import sys
+import time
+from contextlib import contextmanager
 from datetime import datetime
 from features.extract_audio_from_video import extract_audio_lossless
 from features.transcribe_audio_file import transcribe_audio
@@ -21,6 +23,52 @@ from features.translate_srt import translate_srt
 from features.burn_ass_subtitle import burn_subtitle_to_video
 from features.remove_watermark import remove_watermark
 from features.utils import download_video, extract_video_id, load_env, load_links_config
+
+
+# ============================================================
+# TIỆN ÍCH ĐO THỜI GIAN
+# ============================================================
+
+def _fmt_duration(seconds: float) -> str:
+    """Chuyển giây thành chuỗi dễ đọc: 1h 23m 45s hoặc 12.3s."""
+    if seconds >= 3600:
+        h = int(seconds // 3600)
+        m = int((seconds % 3600) // 60)
+        s = int(seconds % 60)
+        return f"{h}h {m:02d}m {s:02d}s"
+    elif seconds >= 60:
+        m = int(seconds // 60)
+        s = int(seconds % 60)
+        return f"{m}m {s:02d}s"
+    else:
+        return f"{seconds:.1f}s"
+
+
+@contextmanager
+def _timed_step(name: str, timings: list):
+    """Context manager đo thời gian một bước và lưu vào danh sách timings."""
+    t0 = time.perf_counter()
+    yield
+    elapsed = time.perf_counter() - t0
+    timings.append((name, elapsed))
+    print(f"  ⏱  {name}: {_fmt_duration(elapsed)}")
+
+
+def _print_timing_summary(timings: list) -> None:
+    """In bảng tổng kết thời gian thực thi từng bước."""
+    total = sum(t for _, t in timings)
+    width = max(len(n) for n, _ in timings) + 2
+    print(f"\n{'─' * (width + 20)}")
+    print(f"  📊  THỜI GIAN THỰC THI TỪNG BƯỚC")
+    print(f"{'─' * (width + 20)}")
+    for name, elapsed in timings:
+        pct = elapsed / total * 100 if total > 0 else 0
+        bar = "█" * int(pct / 5)  # mỗi █ ≈ 5%
+        print(f"  {name:<{width}} {_fmt_duration(elapsed):>8}  {bar} {pct:.0f}%")
+    print(f"{'─' * (width + 20)}")
+    print(f"  {'TỔNG CỘNG':<{width}} {_fmt_duration(total):>8}")
+    print(f"{'─' * (width + 20)}\n")
+
 
 # ============================================================
 # PIPELINE XỬ LÝ MỘT LINK
@@ -65,34 +113,42 @@ def process_one_link(link_entry: dict, base_output_dir: str, options: dict) -> N
     srt_translated_path = os.path.join(output_dir, "translated_subtitle.srt")
     video_out_path = os.path.join(output_dir, "output_video.mp4")
 
+    timings: list[tuple[str, float]] = []
+
     # --- Bước 0: Tải video ---
     print("\n--- BƯỚC 0: TẢI VIDEO ---")
-    video_in_path = download_video(link, download_dir)
+    with _timed_step("Tải video", timings):
+        video_in_path = download_video(link, download_dir)
 
     # --- Bước 1: Xóa watermark (nếu có cấu hình) ---
     if watermark_config:
-        print("\n--- Bước 1: XÓA WATERMARK ---")
-        remove_watermark(video_in_path, video_no_wm_path, watermark_config, use_gpu=use_gpu)
+        print("\n--- BƯỚC 1: XÓA WATERMARK ---")
+        with _timed_step("Xóa watermark", timings):
+            remove_watermark(video_in_path, video_no_wm_path, watermark_config, use_gpu=use_gpu)
         video_in_path = video_no_wm_path
     else:
         print("\nℹ️  Không có cấu hình watermark → bỏ qua bước xóa watermark.")
 
     # --- Bước 2: Tách âm thanh ---
     print("\n--- BƯỚC 2: TÁCH ÂM THANH ---")
-    extract_audio_lossless(video_in_path, audio_tmp_path)
+    with _timed_step("Tách âm thanh", timings):
+        extract_audio_lossless(video_in_path, audio_tmp_path)
 
     # --- Bước 3: Transcribe giọng nói → SRT thô ---
     print("\n--- BƯỚC 3: PHÂN TÍCH GIỌNG NÓI ---")
-    transcribe_audio(audio_tmp_path, srt_raw_path, language=original_lang_code, use_gpu=use_gpu)
+    with _timed_step("Transcribe", timings):
+        transcribe_audio(audio_tmp_path, srt_raw_path, language=original_lang_code, use_gpu=use_gpu)
 
     # --- Bước 4: Sửa lỗi chính tả SRT bằng AI ---
     print("\n--- BƯỚC 4: SỬA LỖI CHÍNH TẢ BẰNG AI ---")
-    fix_typos_in_srt(srt_raw_path, srt_fixed_path)
+    with _timed_step("Sửa typo (AI)", timings):
+        fix_typos_in_srt(srt_raw_path, srt_fixed_path)
 
     # --- Bước 5 (tuỳ chọn): Dịch SRT sang ngôn ngữ đích ---
     if do_translate:
         print(f"\n--- BƯỚC 5: DỊCH THUẬT SANG [{target_lang_code.upper()}] ---")
-        translate_srt(srt_fixed_path, srt_translated_path, target_lang_code)
+        with _timed_step(f"Dịch thuật → {target_lang_code}", timings):
+            translate_srt(srt_fixed_path, srt_translated_path, target_lang_code)
         srt_for_burn = srt_translated_path
         burn_step_num = 6
     else:
@@ -102,14 +158,18 @@ def process_one_link(link_entry: dict, base_output_dir: str, options: dict) -> N
 
     # --- Bước 5 hoặc 6: Burn phụ đề vào video ---
     print(f"\n--- BƯỚC {burn_step_num}: GHÉP PHỤ ĐỀ VÀO VIDEO ---")
-    burn_subtitle_to_video(
-        srt_for_burn, video_in_path, video_out_path, subtitle_configs
-    )
+    with _timed_step("Burn subtitle", timings):
+        burn_subtitle_to_video(
+            srt_for_burn, video_in_path, video_out_path, subtitle_configs
+        )
 
     # Dọn dẹp: xóa audio trung gian
     if os.path.exists(audio_tmp_path):
         os.remove(audio_tmp_path)
         print(f"🧹 Đã xóa audio trung gian: {audio_tmp_path}")
+
+    # In bảng tổng kết thời gian
+    _print_timing_summary(timings)
 
     print(f"\n🎉 HOÀN TẤT! Kết quả nằm trong: {output_dir}")
 
@@ -166,3 +226,4 @@ def main(options: dict) -> None:
             continue
 
     print("\n✅ Đã xử lý xong tất cả các link.")
+

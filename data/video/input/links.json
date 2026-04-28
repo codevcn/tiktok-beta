@@ -1,6 +1,6 @@
 {
   "parallel-execution": false,
-  "use-gpu": true,
+  "use-gpu": false,
   "links": [
     {
       "link": "https://youtu.be/70XSafYpaAA?si=mNl28BE6PeAafe7b",
@@ -21,10 +21,10 @@
         "marginr": 0
       },
       "watermark": {
-        "x1": 3372,
-        "y1": 20,
-        "x2": 3832,
-        "y2": 477
+        "x1": 1111,
+        "y1": 3,
+        "x2": 1273,
+        "y2": 164
       }
     }
   ]
