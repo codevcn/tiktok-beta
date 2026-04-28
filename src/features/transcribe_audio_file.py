@@ -1,27 +1,49 @@
 import os
 import sys
+import glob
 
 # --- ĐẢM BẢO WINDOWS TÌM THẤY NVIDIA DLL KHI DÙNG GPU ---
-# os.environ["PATH"] không đủ tin cậy trên Windows để load DLL lúc runtime.
-# os.add_dll_directory() mới là cách chính xác (Python 3.8+, Windows only).
+# CTranslate2 (backend faster_whisper) load DLL bằng cơ chế riêng,
+# không qua PATH hay add_dll_directory. Cách duy nhất đáng tin cậy:
+# ép load (preload) DLL trực tiếp vào process bằng ctypes.WinDLL
+# TRƯỚC khi import faster_whisper.
 _venv_site = os.path.join(os.getcwd(), ".venv", "Lib", "site-packages")
 _nvidia_dll_dirs = [
     os.path.join(_venv_site, "nvidia", "cublas",       "bin"),
-    os.path.join(_venv_site, "nvidia", "cudnn",        "bin"),
     os.path.join(_venv_site, "nvidia", "cuda_runtime", "bin"),
+    os.path.join(_venv_site, "nvidia", "cudnn",        "bin"),
     os.path.join(_venv_site, "nvidia", "cufft",        "bin"),
 ]
+
 for _d in _nvidia_dll_dirs:
     if os.path.isdir(_d):
         os.environ["PATH"] = _d + ";" + os.environ.get("PATH", "")
         if sys.platform == "win32":
             os.add_dll_directory(_d)
-# ---------------------------------------------------------
 
+# Preload các DLL quan trọng trước khi import faster_whisper
+if sys.platform == "win32":
+    import ctypes
+    # Thứ tự load quan trọng: cuda_runtime → cublas → cudnn
+    _dll_patterns = [
+        os.path.join(_venv_site, "nvidia", "cuda_runtime", "bin", "cudart64_*.dll"),
+        os.path.join(_venv_site, "nvidia", "cublas",       "bin", "cublas64_*.dll"),
+        os.path.join(_venv_site, "nvidia", "cublas",       "bin", "cublasLt64_*.dll"),
+        os.path.join(_venv_site, "nvidia", "cudnn",        "bin", "cudnn*.dll"),
+        os.path.join(_venv_site, "nvidia", "cufft",        "bin", "cufft64_*.dll"),
+    ]
+    for _pattern in _dll_patterns:
+        for _dll_path in sorted(glob.glob(_pattern)):
+            try:
+                ctypes.WinDLL(_dll_path)
+            except OSError:
+                pass  # DLL không load được → bỏ qua, sẽ fallback lúc runtime
+# ---------------------------------------------------------
 
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
 from faster_whisper import WhisperModel
+
 
 
 def format_time_srt(seconds: float) -> str:
