@@ -25,11 +25,15 @@
         "y1": 3,
         "x2": 1273,
         "y2": 164
-      }
+      },
+      "flows": [
+        {
+          "name": "burn_sub_to_video_with_translate"
+        },
+        {
+          "name": "burn_sub_to_video_no_translate"
+        }
+      ]
     }
-  ],
-  "flows": {
-    "auto_burn_sub_to_video_with_translate": true,
-    "auto_burn_sub_to_video_no_translate": false
-  }
+  ]
 }
