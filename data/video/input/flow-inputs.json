@@ -3,12 +3,12 @@
   "use_gpu": false,
   "links": [
     {
-      "link": "https://youtu.be/70XSafYpaAA?si=mNl28BE6PeAafe7b",
+      "link": "https://youtu.be/3mxblcBZgqM",
       "original_lang_code": "ja",
       "target_lang_code": "ja",
       "subtitle_configs": {
         "fontname": "Arial",
-        "fontsize": 24,
+        "fontsize": 18,
         "primarycolor": "255,255,0",
         "outlinecolor": "0,0,0",
         "backcolor": "0,0,0,128",
@@ -16,7 +16,7 @@
         "shadow": 1.0,
         "bold": true,
         "alignment": "BOTTOM_CENTER",
-        "marginv": 20,
+        "marginv": 10,
         "marginl": 0,
         "marginr": 0
       },
