@@ -2,6 +2,7 @@ import subprocess
 import os
 import time
 import re
+import sys
 
 
 def get_video_duration(input_file):
@@ -24,17 +25,13 @@ def get_video_duration(input_file):
         return 0.0
 
 
-def convert_916_macos(input_file, output_file, top_text, bottom_text):
+def convert_916_macos_fixed(input_file, output_file, top_text, bottom_text):
     total_duration = get_video_duration(input_file)
-    if total_duration == 0:
-        print("Lỗi: Không thể đọc được thời lượng video.")
-        return
 
-    # --- ĐIỀU CHỈNH CHO MACOS ---
-    # Đường dẫn font chữ mặc định trên macOS
+    # Tìm Font Arial trên Mac
     font_path = "/System/Library/Fonts/Supplemental/Arial.ttf"
     if not os.path.exists(font_path):
-        font_path = "/Library/Fonts/Arial.ttf"  # Đường dẫn dự phòng
+        font_path = "/Library/Fonts/Arial.ttf"
 
     target_w, target_h = 1080, 1920
     video_h = 608
@@ -61,28 +58,32 @@ def convert_916_macos(input_file, output_file, top_text, bottom_text):
         "[v]",
         "-map",
         "0:a?",
-        # --- SỬ DỤNG VIDEOTOOLBOX (GPU MACOS) ---
         "-c:v",
-        "h264_videotoolbox",
+        "h264_videotoolbox",  # Sử dụng GPU Mac
         "-b:v",
-        "10M",  # Đặt bitrate cao để giữ chất lượng (10 Mbps)
-        "-realtime",
-        "false",  # Ưu tiên chất lượng hơn tốc độ thời gian thực
+        "8M",  # Bitrate cao để giữ chất lượng
         "-c:a",
         "copy",
         "-shortest",
         "-movflags",
-        "+faststart",
+        "+faststart",  # Giúp đóng file nhanh hơn
         output_file,
         "-y",
     ]
 
-    print(f"Bắt đầu xử lý trên macOS. Thời lượng: {total_duration}s")
+    print(f"--- Bắt đầu render trên macOS ---")
+    print(f"File gốc: {total_duration:.2f} giây")
     start_time = time.time()
 
+    # Sử dụng stderr.read(X) để không bị block bởi dấu xuống dòng
     process = subprocess.Popen(
-        cmd, stderr=subprocess.PIPE, universal_newlines=True, encoding="utf-8"
+        cmd,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.DEVNULL,
+        universal_newlines=True,
+        encoding="utf-8",
     )
+
     time_pattern = re.compile(r"time=(\d{2}):(\d{2}):(\d{2}\.\d{2})")
 
     if not process.stderr:
@@ -90,44 +91,47 @@ def convert_916_macos(input_file, output_file, top_text, bottom_text):
 
     try:
         while True:
-            line = process.stderr.readline()
-            if not line and process.poll() is not None:
+            # Đọc một đoạn dữ liệu từ stderr
+            # Chúng ta dùng stderr.read(10) để lấy các đoạn nhỏ liên tục
+            output = process.stderr.read(20)
+            if not output and process.poll() is not None:
                 break
 
-            match = time_pattern.search(line)
+            match = time_pattern.search(output)
             if match:
                 hours, mins, secs = map(float, match.groups())
                 current_time_sec = hours * 3600 + mins * 60 + secs
-                progress = min((current_time_sec / total_duration) * 100, 100.0)
-                print(
-                    f"\rĐang render: {progress:>5.1f}% | {current_time_sec:>6.2f}s / {total_duration}s",
-                    end="",
-                    flush=True,
+
+                # Tính % và giới hạn 99.9% cho đến khi kết thúc hẳn
+                progress = (
+                    min((current_time_sec / total_duration) * 100, 99.9)
+                    if total_duration > 0
+                    else 0
                 )
+                sys.stdout.write(
+                    f"\rTiến trình: {progress:>5.1f}% | Đã xử lý: {current_time_sec:>6.2f}s"
+                )
+                sys.stdout.flush()
 
         process.wait()
 
-        if process.returncode == 0:
-            print(
-                f"\rĐang render: 100.0% | {total_duration:>6.2f}s / {total_duration}s",
-                flush=True,
-            )
-            elapsed = time.time() - start_time
-            print(f"\n\nXử lý hoàn tất!")
-            print(f"Tổng thời gian chạy: {int(elapsed//60)} phút {elapsed%60:.2f} giây")
-        else:
-            print(
-                f"\n\nFFmpeg báo lỗi (Mã: {process.returncode}). Kiểm tra lại file đầu vào hoặc bộ lọc."
-            )
+        # In dòng hoàn tất thực sự
+        sys.stdout.write(f"\rTiến trình: 100.0% | Đã xử lý: {total_duration:>6.2f}s\n")
 
-    except Exception as e:
-        print(f"\nLỗi: {e}")
+        end_time = time.time()
+        elapsed = end_time - start_time
+        print(f"\n✅ Xử lý hoàn tất!")
+        print(f"⏱️ Tổng thời gian chạy: {int(elapsed//60)} phút {elapsed%60:.2f} giây")
+
+    except KeyboardInterrupt:
         process.kill()
+        print("\n🛑 Đã hủy bởi người dùng.")
+    except Exception as e:
+        print(f"\n❌ Lỗi: {e}")
 
 
-# --- ĐƯỜNG DẪN TRÊN MACOS ---
-# Lưu ý: Mac dùng dấu / cho đường dẫn
+# --- THAY ĐỔI ĐƯỜNG DẪN TẠI ĐÂY ---
 input_path = "input.mp4"
-output_path = "output_916_mac.mp4"
+output_path = "output_mac_916.mp4"
 
-convert_916_macos(input_path, output_path, "TIÊU ĐỀ MAC", "MÔ TẢ VIDEO")
+convert_916_macos_fixed(input_path, output_path, "TIÊU ĐỀ MAC", "XỬ LÝ TRÊN GPU")
