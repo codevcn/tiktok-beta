@@ -22,12 +22,13 @@ from features.fix_transcribe_typos import fix_typos_in_srt
 from features.translate_srt import translate_srt
 from features.burn_ass_subtitle import burn_subtitle_to_video
 from features.remove_watermark import remove_watermark
-from features.utils import download_video, extract_video_id, load_env, load_links_config
+from utils.helpers import download_video, extract_video_id, load_env, load_links_config
 
 
 # ============================================================
 # TIỆN ÍCH ĐO THỜI GIAN
 # ============================================================
+
 
 def _fmt_duration(seconds: float) -> str:
     """Chuyển giây thành chuỗi dễ đọc: 1h 23m 45s hoặc 12.3s."""
@@ -86,9 +87,9 @@ def process_one_link(link_entry: dict, base_output_dir: str, options: dict) -> N
             - "translate" (bool): Nếu True, thêm bước dịch SRT trước khi burn subtitle.
     """
     link = link_entry["link"]
-    original_lang_code = link_entry.get("original-lang-code")  # None = tự detect
-    target_lang_code = link_entry.get("target-lang-code", "vi")
-    subtitle_configs = link_entry.get("subtitle-configs", {})
+    original_lang_code = link_entry.get("original_lang_code")  # None = tự detect
+    target_lang_code = link_entry.get("target_lang_code", "vi")
+    subtitle_configs = link_entry.get("subtitle_configs", {})
     watermark_config = link_entry.get("watermark")  # None nếu không có field này
 
     do_translate: bool = bool(options.get("translate", False))
@@ -124,7 +125,9 @@ def process_one_link(link_entry: dict, base_output_dir: str, options: dict) -> N
     if watermark_config:
         print("\n--- BƯỚC 1: XÓA WATERMARK ---")
         with _timed_step("Xóa watermark", timings):
-            remove_watermark(video_in_path, video_no_wm_path, watermark_config, use_gpu=use_gpu)
+            remove_watermark(
+                video_in_path, video_no_wm_path, watermark_config, use_gpu=use_gpu
+            )
         video_in_path = video_no_wm_path
     else:
         print("\nℹ️  Không có cấu hình watermark → bỏ qua bước xóa watermark.")
@@ -137,7 +140,9 @@ def process_one_link(link_entry: dict, base_output_dir: str, options: dict) -> N
     # --- Bước 3: Transcribe giọng nói → SRT thô ---
     print("\n--- BƯỚC 3: PHÂN TÍCH GIỌNG NÓI ---")
     with _timed_step("Transcribe", timings):
-        transcribe_audio(audio_tmp_path, srt_raw_path, language=original_lang_code, use_gpu=use_gpu)
+        transcribe_audio(
+            audio_tmp_path, srt_raw_path, language=original_lang_code, use_gpu=use_gpu
+        )
 
     # --- Bước 4: Sửa lỗi chính tả SRT bằng AI ---
     print("\n--- BƯỚC 4: SỬA LỖI CHÍNH TẢ BẰNG AI ---")
@@ -190,22 +195,22 @@ def main(options: dict) -> None:
     # 1. Load biến môi trường
     load_env(".env")
 
-    # 2. Đọc file links.json
-    links_json_path = os.path.join("data", "video", "input", "links.json")
+    # 2. Đọc file flow-inputs.json
+    links_json_path = os.path.join("data", "video", "input", "flow-inputs.json")
     config = load_links_config(links_json_path)
 
-    # Đọc cấu hình GPU từ cấp top-level của links.json
-    use_gpu: bool = bool(config.get("use-gpu", False))
+    # Đọc cấu hình GPU từ cấp top-level của flow-inputs.json
+    use_gpu: bool = bool(config.get("use_gpu", False))
     gpu_label = "GPU (CUDA)" if use_gpu else "CPU"
     print(f"ℹ️  Chế độ xử lý: {gpu_label}")
     options["use_gpu"] = use_gpu
 
     links = config.get("links", [])
     if not links:
-        print("❌ Không có link nào trong links.json để xử lý.")
+        print("❌ Không có link nào trong flow-inputs.json để xử lý.")
         sys.exit(1)
 
-    # parallel-execution hiện tại luôn False (xử lý tuần tự)
+    # parallel_execution hiện tại luôn False (xử lý tuần tự)
     # Khi cần xử lý song song sẽ mở rộng ở đây
     base_output_dir = os.path.join("data", "video", "output")
     os.makedirs(base_output_dir, exist_ok=True)
@@ -226,4 +231,3 @@ def main(options: dict) -> None:
             continue
 
     print("\n✅ Đã xử lý xong tất cả các link.")
-

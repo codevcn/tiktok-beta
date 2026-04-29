@@ -3,7 +3,7 @@ Dịch nội dung SRT sang ngôn ngữ đích bằng AI.
 """
 
 import os
-from features.ai_client import generate_with_failover, clean_markdown_response
+from core.ai_client import generate_with_failover, clean_markdown_response
 
 
 def get_translate_prompt(srt_text: str, target_lang_code: str) -> str:
@@ -54,7 +54,9 @@ Here is the SRT content to translate:
 """
 
 
-def translate_srt(input_srt_path: str, output_srt_path: str, target_lang_code: str) -> str:
+def translate_srt(
+    input_srt_path: str, output_srt_path: str, target_lang_code: str
+) -> str:
     """
     Dịch nội dung file SRT sang ngôn ngữ đích bằng AI.
 

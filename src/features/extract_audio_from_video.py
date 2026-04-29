@@ -1,6 +1,6 @@
 import subprocess
 from pathlib import Path
-from features.utils import run_ffmpeg_with_progress
+from utils.helpers import run_ffmpeg_with_progress
 
 
 def extract_audio_lossless(video_path: str, audio_path: str) -> str:
@@ -15,9 +15,13 @@ def extract_audio_lossless(video_path: str, audio_path: str) -> str:
         raise FileNotFoundError(f"Không tìm thấy file video: {video_file}")
 
     command = [
-        "ffmpeg", "-y",
-        "-i", str(video_file),
-        "-vn", "-c:a", "copy",
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(video_file),
+        "-vn",
+        "-c:a",
+        "copy",
         str(output_file),
     ]
 

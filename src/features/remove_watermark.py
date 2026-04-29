@@ -4,7 +4,7 @@ Xóa watermark khỏi video bằng ffmpeg delogo filter.
 
 import os
 import subprocess
-from features.utils import run_ffmpeg_with_progress
+from utils.helpers import run_ffmpeg_with_progress
 
 
 def remove_watermark(
@@ -53,11 +53,15 @@ def remove_watermark(
         print("  → Encoder: libx264 (CPU)")
 
     command = [
-        "ffmpeg", "-y",
-        "-i", video_in_path,
-        "-vf", f"delogo=x={x1}:y={y1}:w={w}:h={h}",
+        "ffmpeg",
+        "-y",
+        "-i",
+        video_in_path,
+        "-vf",
+        f"delogo=x={x1}:y={y1}:w={w}:h={h}",
         *encoder_args,
-        "-c:a", "copy",
+        "-c:a",
+        "copy",
         video_out_path,
     ]
 
@@ -69,4 +73,3 @@ def remove_watermark(
         print("❌ FFmpeg báo lỗi khi xóa watermark:")
         print(e.stderr)
         raise
-

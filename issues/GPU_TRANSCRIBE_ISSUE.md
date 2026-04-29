@@ -2,11 +2,11 @@
 
 ## Summary
 
-When `use-gpu` is enabled in `data/video/input/links.json`, the pipeline may appear to stop immediately after the transcription step finishes.
+When `use_gpu` is enabled in `data/video/input/links.json`, the pipeline may appear to stop immediately after the transcription step finishes.
 
 This is misleading: the Python flow itself is not intentionally stopping there. The more likely situation is that the process exits at the native runtime layer used by `faster-whisper` / `CTranslate2` / CUDA on Windows.
 
-When the same pipeline is run with `use-gpu: false`, it completes normally:
+When the same pipeline is run with `use_gpu: false`, it completes normally:
 
 - transcribe
 - typo correction with Gemini
@@ -122,7 +122,7 @@ Use CPU mode by default:
 
 ```json
 {
-  "use-gpu": false
+  "use_gpu": false
 }
 ```
 
@@ -179,3 +179,5 @@ In the current project state:
 - CPU offers proven end-to-end reliability
 
 Because the full workflow matters more than only one faster step, CPU is currently the better operational choice unless the GPU runtime is stabilized first.
+
+(Đã giải quyết)

@@ -36,21 +36,21 @@ class TierConfig:
 # Danh sách tier theo thứ tự ưu tiên
 TIERS = [
     TierConfig(
-        name="Gemini 3 Flash Preview",
-        provider="gemini",
-        model="gemini-3-flash-preview",
-        max_retries=3,
-        backoff_base=2.0,
-        backoff_max=60.0,
-        env_key="GOOGLE_API_KEY",
-    ),
-    TierConfig(
         name="Gemini 2.5 Flash",
         provider="gemini",
         model="gemini-2.5-flash",
         max_retries=3,
         backoff_base=3.0,
         backoff_max=30.0,
+        env_key="GOOGLE_API_KEY",
+    ),
+    TierConfig(
+        name="Gemini 3 Flash Preview",
+        provider="gemini",
+        model="gemini-3-flash-preview",
+        max_retries=3,
+        backoff_base=2.0,
+        backoff_max=60.0,
         env_key="GOOGLE_API_KEY",
     ),
     TierConfig(

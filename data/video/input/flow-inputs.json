@@ -1,12 +1,12 @@
 {
-  "parallel-execution": false,
-  "use-gpu": false,
+  "parallel_execution": false,
+  "use_gpu": false,
   "links": [
     {
       "link": "https://youtu.be/70XSafYpaAA?si=mNl28BE6PeAafe7b",
-      "original-lang-code": "ja",
-      "target-lang-code": "ja",
-      "subtitle-configs": {
+      "original_lang_code": "ja",
+      "target_lang_code": "ja",
+      "subtitle_configs": {
         "fontname": "Arial",
         "fontsize": 24,
         "primarycolor": "255,255,0",
@@ -27,5 +27,9 @@
         "y2": 164
       }
     }
-  ]
+  ],
+  "flows": {
+    "auto_burn_sub_to_video_with_translate": true,
+    "auto_burn_sub_to_video_no_translate": false
+  }
 }

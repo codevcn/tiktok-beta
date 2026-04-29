@@ -1,65 +1,38 @@
 """
-Entry point - Hiển thị menu chọn quy trình xử lý video.
+Entry point - Tự động chạy quy trình dựa trên cấu hình trong flow-inputs.json.
 """
 
+import os
 import sys
+import json
 
 from auto_burn_sub_to_video import main as run_pipeline
 
 
-FLOWS: dict[int, dict] = {
-    1: {
-        "name": "Tự động gắn sub CÓ dịch thuật",
-        "description": "Download → Xóa watermark → Transcribe → Sửa typo → Dịch → Burn sub",
-        "options": {"translate": True},
-    },
-    2: {
-        "name": "Tự động gắn sub KHÔNG dịch thuật",
-        "description": "Download → Xóa watermark → Transcribe → Sửa typo → Burn sub",
-        "options": {"translate": False},
-    },
-}
-
-
-def print_menu() -> None:
-    print("\n" + "=" * 55)
-    print("  🎬  QUIIN VIDEO PROCESSOR  —  Chọn quy trình")
-    print("=" * 55)
-    for num, flow in FLOWS.items():
-        print(f"\n  [{num}] {flow['name']}")
-        print(f"       {flow['description']}")
-    print("\n" + "-" * 55)
-
-
-
-def get_user_choice() -> int:
-    while True:
-        try:
-            raw = input("  Nhập số thứ tự quy trình và nhấn Enter: ").strip()
-            choice = int(raw)
-            if choice in FLOWS:
-                return choice
-            else:
-                print(
-                    f"  ❌ Không có quy trình số {choice}. Vui lòng chọn từ {list(FLOWS.keys())}."
-                )
-        except ValueError:
-            print("  ❌ Vui lòng nhập một số nguyên hợp lệ.")
-        except (KeyboardInterrupt, EOFError):
-            print("\n\n  👋 Đã hủy. Tạm biệt!")
-            sys.exit(0)
-
-
 def main() -> None:
-    print_menu()
-    choice = get_user_choice()
+    config_path = os.path.join("data", "video", "input", "flow-inputs.json")
+    if not os.path.exists(config_path):
+        print(f"❌ Không tìm thấy file cấu hình: {config_path}")
+        sys.exit(1)
 
-    flow = FLOWS[choice]
-    options: dict = dict(flow["options"])  # copy để không ảnh hưởng FLOWS gốc
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            config = json.load(f)
+    except Exception as e:
+        print(f"❌ Lỗi khi đọc file cấu hình {config_path}: {e}")
+        sys.exit(1)
 
-    print(f"\n  ✅ Bắt đầu quy trình: [{choice}] {flow['name']}\n")
-
-    run_pipeline(options)
+    flows = config.get("flows", {})
+    
+    if flows.get("auto_burn_sub_to_video_with_translate"):
+        print("\n  ✅ Bắt đầu quy trình: Tự động gắn sub CÓ dịch thuật\n")
+        run_pipeline({"translate": True})
+    elif flows.get("auto_burn_sub_to_video_no_translate"):
+        print("\n  ✅ Bắt đầu quy trình: Tự động gắn sub KHÔNG dịch thuật\n")
+        run_pipeline({"translate": False})
+    else:
+        print("❌ Không có quy trình nào được bật (true) trong 'flows' của flow-inputs.json.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

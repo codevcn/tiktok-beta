@@ -2,7 +2,7 @@ import os
 import subprocess
 import pysubs2
 from pysubs2.common import Alignment
-from features.utils import run_ffmpeg_with_progress
+from utils.helpers import run_ffmpeg_with_progress
 
 
 def _parse_color(color_str: str) -> pysubs2.Color:
@@ -12,7 +12,9 @@ def _parse_color(color_str: str) -> pysubs2.Color:
     elif len(parts) == 4:
         return pysubs2.Color(parts[0], parts[1], parts[2], parts[3])
     else:
-        raise ValueError(f"Định dạng màu không hợp lệ: '{color_str}'. Dùng 'R,G,B' hoặc 'R,G,B,A'.")
+        raise ValueError(
+            f"Định dạng màu không hợp lệ: '{color_str}'. Dùng 'R,G,B' hoặc 'R,G,B,A'."
+        )
 
 
 def _parse_alignment(alignment_str: str) -> Alignment:
@@ -29,7 +31,9 @@ def _parse_alignment(alignment_str: str) -> Alignment:
     }
     key = alignment_str.upper()
     if key not in mapping:
-        raise ValueError(f"Alignment không hợp lệ: '{alignment_str}'. Hợp lệ: {list(mapping.keys())}")
+        raise ValueError(
+            f"Alignment không hợp lệ: '{alignment_str}'. Hợp lệ: {list(mapping.keys())}"
+        )
     return mapping[key]
 
 
@@ -56,18 +60,20 @@ def burn_subtitle_to_video(
 
     subs = pysubs2.load(srt_path, encoding="utf-8")
     style = subs.styles["Default"]
-    style.fontname    = subtitle_configs.get("fontname", "Arial")
-    style.fontsize    = subtitle_configs.get("fontsize", 24)
+    style.fontname = subtitle_configs.get("fontname", "Arial")
+    style.fontsize = subtitle_configs.get("fontsize", 24)
     style.primarycolor = _parse_color(subtitle_configs.get("primarycolor", "255,255,0"))
     style.outlinecolor = _parse_color(subtitle_configs.get("outlinecolor", "0,0,0"))
-    style.backcolor   = _parse_color(subtitle_configs.get("backcolor", "0,0,0,128"))
-    style.outline     = float(subtitle_configs.get("outline", 2.0))
-    style.shadow      = float(subtitle_configs.get("shadow", 1.0))
-    style.bold        = bool(subtitle_configs.get("bold", True))
-    style.alignment   = _parse_alignment(subtitle_configs.get("alignment", "BOTTOM_CENTER"))
-    style.marginv     = int(subtitle_configs.get("marginv", 30))
-    style.marginl     = int(subtitle_configs.get("marginl", 0))
-    style.marginr     = int(subtitle_configs.get("marginr", 0))
+    style.backcolor = _parse_color(subtitle_configs.get("backcolor", "0,0,0,128"))
+    style.outline = float(subtitle_configs.get("outline", 2.0))
+    style.shadow = float(subtitle_configs.get("shadow", 1.0))
+    style.bold = bool(subtitle_configs.get("bold", True))
+    style.alignment = _parse_alignment(
+        subtitle_configs.get("alignment", "BOTTOM_CENTER")
+    )
+    style.marginv = int(subtitle_configs.get("marginv", 30))
+    style.marginl = int(subtitle_configs.get("marginl", 0))
+    style.marginr = int(subtitle_configs.get("marginr", 0))
 
     subs.save(ass_path)
     print(f"  → Đã tạo: {ass_path}")
@@ -79,13 +85,20 @@ def burn_subtitle_to_video(
     ass_escaped = ass_abs.replace("\\", "/").replace(":", "\\:")
 
     command = [
-        "ffmpeg", "-y",
-        "-i", video_in_path,
-        "-vf", f"ass='{ass_escaped}'",
-        "-c:v", "libx264",
-        "-preset", "fast",
-        "-crf", "23",
-        "-c:a", "copy",
+        "ffmpeg",
+        "-y",
+        "-i",
+        video_in_path,
+        "-vf",
+        f"ass='{ass_escaped}'",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "fast",
+        "-crf",
+        "23",
+        "-c:a",
+        "copy",
         video_out_path,
     ]
 

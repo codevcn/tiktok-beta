@@ -3,7 +3,7 @@ Sửa lỗi typo trong 1 file srt.
 """
 
 import os
-from features.ai_client import generate_with_failover, clean_markdown_response
+from core.ai_client import generate_with_failover, clean_markdown_response
 
 
 def get_prompt(srt_text: str) -> str:
