@@ -1,3 +1,5 @@
+(solved)
+
 Đề xuất giải pháp kỹ thuật dành cho AI Coding. Tài liệu này tập trung vào việc mô tả kiến trúc và logic xử lý để công cụ AI tự thực hiện mã hóa dựa trên ngữ cảnh dự án.
 
 ---
@@ -65,5 +67,3 @@ AI cần đảm bảo rằng:
 2. **Tính linh hoạt:** Nếu Gemini Pro lỗi, hệ thống phải tự động gọi được Gemini Flash. Nếu vẫn lỗi, phải gọi được OpenAI.
 3. **Tính sạch sẽ:** Sử dụng Decorator của `tenacity` để tách biệt logic retry khỏi logic gọi API chính, giữ cho mã nguồn dễ bảo trì.
 4. **Thông báo:** Hệ thống phải log rõ ràng trạng thái: "Đang thử lại lần n...", "Đang chuyển sang mô hình dự phòng...", "Đang chuyển sang OpenAI...".
-
-(Đã giải quyết)

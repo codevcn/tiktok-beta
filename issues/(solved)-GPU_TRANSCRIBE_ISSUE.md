@@ -1,3 +1,5 @@
+(solved)
+
 # GPU Transcribe Issue
 
 ## Summary
@@ -179,5 +181,3 @@ In the current project state:
 - CPU offers proven end-to-end reliability
 
 Because the full workflow matters more than only one faster step, CPU is currently the better operational choice unless the GPU runtime is stabilized first.
-
-(Đã giải quyết)

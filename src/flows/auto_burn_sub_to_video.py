@@ -220,7 +220,11 @@ def process_one_link(link_entry: dict, base_output_dir: str, use_gpu: bool) -> N
         print(f"\n  --- {flow_label} | GHÉP PHỤ ĐỀ VÀO VIDEO ---")
         with _timed_step(f"[{flow_label}] Burn subtitle", timings):
             burn_subtitle_to_video(
-                srt_for_burn, base_video_path, video_out_path, subtitle_configs
+                srt_for_burn,
+                base_video_path,
+                video_out_path,
+                subtitle_configs,
+                use_gpu=use_gpu,
             )
 
         print(f"\n  ✅ {flow_label}: Hoàn tất → {video_out_path}")

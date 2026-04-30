@@ -4,6 +4,7 @@ Dịch nội dung SRT sang ngôn ngữ đích bằng AI.
 
 import os
 from core.ai_client import generate_with_failover, clean_markdown_response
+from utils.srt_validation import SrtValidationError, coerce_validated_srt
 
 
 def get_translate_prompt(srt_text: str, target_lang_code: str) -> str:
@@ -19,6 +20,7 @@ Mandatory requirements:
    - Keep the original order of all subtitle blocks.
    - Keep the blank line between subtitle blocks.
    - Do not add any introduction, explanation, notes, markdown, or any content outside the translated SRT.
+   - The output will be rejected if the number of blocks, any index, or any timestamp differs from the input.
 
 2. Translate only the subtitle text:
    - Do not translate subtitle index numbers.
@@ -81,6 +83,16 @@ def translate_srt(
         task_label=f"Dịch thuật → {target_lang_code}",
     )
     result_text = clean_markdown_response(result_text)
+    try:
+        result_text = coerce_validated_srt(
+            srt_content,
+            result_text,
+            "translation output",
+        )
+        print("  -> SRT validation passed: block count, indices, and timestamps unchanged.")
+    except SrtValidationError as e:
+        print(f"  [SRT validation failed] {e}")
+        raise
 
     with open(output_srt_path, "w", encoding="utf-8") as f:
         f.write(result_text)

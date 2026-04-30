@@ -1,3 +1,5 @@
+(solved)
+
 # TÀI LIỆU NGHIÊN CỨU: Chuyển đổi Video 16:9 → 9:16 bằng FFmpeg & Python
 
 > **Ngày thực hiện:** 2026-04-30

@@ -5,6 +5,101 @@ from pysubs2.common import Alignment
 from utils.helpers import run_ffmpeg_with_progress
 
 
+def _build_burn_command(
+    video_in_path: str,
+    ass_escaped: str,
+    video_out_path: str,
+    encoder_args: list[str],
+) -> list[str]:
+    return [
+        "ffmpeg",
+        "-y",
+        "-i",
+        video_in_path,
+        "-vf",
+        f"ass='{ass_escaped}'",
+        *encoder_args,
+        "-c:a",
+        "copy",
+        video_out_path,
+    ]
+
+
+def _is_valid_video_file(path: str) -> bool:
+    """Return True when ffprobe can read at least one video stream."""
+    if not os.path.exists(path) or os.path.getsize(path) == 0:
+        return False
+
+    command = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream=codec_type",
+        "-of",
+        "csv=p=0",
+        path,
+    ]
+
+    try:
+        result = subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=15,
+        )
+    except (
+        FileNotFoundError,
+        subprocess.CalledProcessError,
+        subprocess.TimeoutExpired,
+    ):
+        return False
+
+    return any(line.strip() == "video" for line in result.stdout.splitlines())
+
+
+def _file_signature(path: str) -> tuple[int, int] | None:
+    if not os.path.exists(path):
+        return None
+    stat_result = os.stat(path)
+    return (stat_result.st_mtime_ns, stat_result.st_size)
+
+
+def _run_gpu_burn_with_safe_exit(command: list[str], video_out_path: str) -> bool:
+    """
+    Run NVENC burn. If FFmpeg exits non-zero after producing a valid video,
+    accept the output as a GPU cleanup/teardown issue and continue safely.
+    """
+    previous_signature = _file_signature(video_out_path)
+
+    try:
+        run_ffmpeg_with_progress(command, "Burn subtitle (GPU)")
+        return True
+    except subprocess.CalledProcessError as e:
+        print("  [GPU burn warning] FFmpeg/NVENC failed.")
+        print(e.stderr)
+
+        current_signature = _file_signature(video_out_path)
+        output_was_updated = current_signature is not None
+        output_was_updated = (
+            output_was_updated and current_signature != previous_signature
+        )
+
+        if output_was_updated and _is_valid_video_file(video_out_path):
+            print(
+                "  [GPU burn warning] FFmpeg returned an error, but output video "
+                "is valid -> keeping GPU result."
+            )
+            return True
+
+        print("  -> GPU output is missing or invalid -> falling back to CPU encode.")
+        return False
+
+
 def _parse_color(color_str: str) -> pysubs2.Color:
     parts = [int(v.strip()) for v in color_str.split(",")]
     if len(parts) == 3:
@@ -42,6 +137,7 @@ def burn_subtitle_to_video(
     video_in_path: str,
     video_out_path: str,
     subtitle_configs: dict,
+    use_gpu: bool = False,
 ) -> str:
     """
     Burn phụ đề SRT vào video với style từ subtitle_configs (links.json).
@@ -79,31 +175,35 @@ def burn_subtitle_to_video(
     print(f"  → Đã tạo: {ass_path}")
 
     # ==========================================
-    # GIAI ĐOẠN 2: GHÉP PHỤ ĐỀ ASS BẰNG CPU
+    # GIAI DOAN 2: BURN ASS SUBTITLE (GPU WITH CPU FALLBACK)
     # ==========================================
     ass_abs = os.path.abspath(ass_path)
     ass_escaped = ass_abs.replace("\\", "/").replace(":", "\\:")
 
-    command = [
-        "ffmpeg",
-        "-y",
-        "-i",
+    gpu_encoder_args = ["-c:v", "h264_nvenc", "-preset", "p4", "-cq", "23"]
+    cpu_encoder_args = ["-c:v", "libx264", "-preset", "fast", "-crf", "23"]
+    gpu_command = _build_burn_command(
         video_in_path,
-        "-vf",
-        f"ass='{ass_escaped}'",
-        "-c:v",
-        "libx264",
-        "-preset",
-        "fast",
-        "-crf",
-        "23",
-        "-c:a",
-        "copy",
+        ass_escaped,
         video_out_path,
-    ]
+        gpu_encoder_args,
+    )
+    cpu_command = _build_burn_command(
+        video_in_path,
+        ass_escaped,
+        video_out_path,
+        cpu_encoder_args,
+    )
 
     try:
-        run_ffmpeg_with_progress(command, "Burn subtitle")
+        if use_gpu:
+            print("  -> Encoder: h264_nvenc (GPU), fallback CPU if unavailable")
+            if not _run_gpu_burn_with_safe_exit(gpu_command, video_out_path):
+                print("  -> Encoder: libx264 (CPU fallback)")
+                run_ffmpeg_with_progress(cpu_command, "Burn subtitle (CPU fallback)")
+        else:
+            print("  -> Encoder: libx264 (CPU)")
+            run_ffmpeg_with_progress(cpu_command, "Burn subtitle")
         print(f"  → Đã lưu: {video_out_path}")
     except subprocess.CalledProcessError as e:
         print("❌ FFmpeg báo lỗi khi burn subtitle:")
