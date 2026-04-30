@@ -1,6 +1,6 @@
 {
   "parallel_execution": false,
-  "use_gpu": false,
+  "use_gpu": true,
   "links": [
     {
       "link": "https://youtu.be/3mxblcBZgqM",
@@ -27,9 +27,6 @@
         "y2": 164
       },
       "flows": [
-        {
-          "name": "burn_sub_to_video_with_translate"
-        },
         {
           "name": "burn_sub_to_video_no_translate"
         }
