@@ -20,12 +20,6 @@
         "marginl": 0,
         "marginr": 0
       },
-      "watermark": {
-        "x1": 1111,
-        "y1": 3,
-        "x2": 1273,
-        "y2": 164
-      },
       "flows": [
         {
           "name": "burn_sub_to_video_no_translate"
