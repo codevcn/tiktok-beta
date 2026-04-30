@@ -1,5 +1,5 @@
 """
-Test script for converting a video to 9:16 with FFmpeg on Windows, macOS, and Linux.
+Test script for converting a video to 9:16 with FFmpeg on Kaggle only.
 """
 
 from __future__ import annotations
@@ -193,7 +193,7 @@ def _build_filter(
         f"[0:v]split=2[main][temp];"
         f"[temp]trim=start_frame=0:end_frame=1,"
         f"loop=loop=9999:size=1,setpts=PTS-STARTPTS,"
-        f"boxblur=40:1,"
+        f"boxblur=25:1,"
         f"split=2[blurred1][blurred2];"
         f"[blurred1]scale={target_w}:{pad_h}:force_original_aspect_ratio=increase,"
         f"crop={target_w}:{pad_h}[tp];"

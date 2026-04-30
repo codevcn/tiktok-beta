@@ -61,7 +61,7 @@ Rủi ro:
 
 Ưu tiên: Thấp (Triển khai sau).
 
-### 4. Burn subtitle chưa tận dụng GPU encode
+### 4. Burn subtitle chưa tận dụng GPU encode (completed)
 
 `remove_watermark.py` có hỗ trợ `h264_nvenc` khi `use_gpu=true`, nhưng `burn_ass_subtitle.py` luôn dùng `libx264`.
 

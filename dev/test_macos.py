@@ -60,7 +60,7 @@ def convert_916_macos(input_file, output_file, top_text, bottom_text):
         # POWER:  số lần áp dụng blur (thường 1-3)
         # Nhẹ: boxblur=15:1 | Vừa: boxblur=30:2 | Rất mờ: boxblur=50:3
         # ============================================
-        f"boxblur=50:1,"  # ← CHỈNH SỐ NÀY
+        f"boxblur=25:1,"  # ← CHỈNH SỐ NÀY
         f"split=2[blurred1][blurred2];"
         f"[blurred1]scale={target_w}:{pad_h}:force_original_aspect_ratio=increase,"
         f"crop={target_w}:{pad_h}[tp];"

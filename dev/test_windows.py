@@ -75,7 +75,7 @@ def convert_916(input_file, output_file, top_text, bottom_text, platform="window
         # Ví dụ mờ vừa: boxblur=30:2
         # Ví dụ rất mờ: boxblur=50:3
         # ============================================
-        f"boxblur=40:1,"  # ← CHỈNH SỐ NÀY
+        f"boxblur=25:1,"  # ← CHỈNH SỐ NÀY
         f"split=2[blurred1][blurred2];"
         f"[blurred1]scale={target_w}:{pad_h}:force_original_aspect_ratio=increase,"
         f"crop={target_w}:{pad_h}[tp];"
