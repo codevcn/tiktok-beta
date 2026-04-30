@@ -1,20 +1,13 @@
-[ 97%] [00:05:53,209 → 00:05:56,970]  できれば日常的な質問がいいですね。
-  [ 99%] [00:05:57,689 → 00:06:02,370]  はい、じゃあ皆さん、今日も最後まで見てくれて本当にありがとうございました。
-  [ 99%] [00:06:02,870 → 00:06:04,509]  お疲れ様でした。バイバイ。
-  [ 99%] [00:06:05,990 → 00:06:06,990]  はい。
-  ────────────────────────────────────────────────────────────
-  [100%] Hoàn tất transcribe → data\video\output\vid-3mxblcBZgqM-20260428_170355\raw_subtitle.srt
-
-  ⚠️  GPU subprocess kết thúc bất thường (exit code: 3221226505)
-  ⚠️  Tự động chuyển sang CPU để thử lại...
-
-  → Đang tải model Whisper large-v3 (CPU / int8) | ngôn ngữ: ja...
-  → Đang phân tích âm thanh...
-
-  Ngôn ngữ phát hiện: ja (100%)
-  Tổng thời lượng   : 364.9s
-  ────────────────────────────────────────────────────────────
-  [  0%] [00:00:00,000 → 00:00:02,000]  みなさん こんにちは。なおこです。
-  [  1%] [00:00:02,000 → 00:00:07,000]  きょうの動画は、日本語のリスニングチャレンジです。
-  [  4%] [00:00:07,000 → 00:00:15,000]  きょうは、5分間、簡単な質問に日本語で答えたいと思います。
-  [  6%] [00:00:15,000 → 00:00:23,000]  いつもは、少しゆっくり話すんですけど、きょうは、少し早く話したいと思います。
+input.mp4: No such file or directory
+Traceback (most recent call last):
+  File "/kaggle/working/tiktok-beta/dev/test_windows.py", line 143, in <module>
+    convert_916(
+  File "/kaggle/working/tiktok-beta/dev/test_windows.py", line 35, in convert_916
+    total_duration = float(subprocess.check_output(probe_cmd).strip())
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/subprocess.py", line 466, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', 'input.mp4']' returned non-zero exit status 1.

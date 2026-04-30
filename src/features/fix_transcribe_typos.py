@@ -4,7 +4,7 @@ Sửa lỗi typo trong 1 file srt.
 
 import os
 from core.ai_client import generate_with_failover, clean_markdown_response
-from utils.srt_validation import SrtValidationError, coerce_validated_srt
+from utils.srt_validation import SrtValidationError, coerce_srt_to_reference_structure
 
 
 def get_prompt(srt_text: str) -> str:
@@ -71,12 +71,19 @@ def fix_typos_in_srt(input_srt_path: str, output_srt_path: str) -> str:
     )
     result_text = clean_markdown_response(result_text)
     try:
-        result_text = coerce_validated_srt(
+        srt_result = coerce_srt_to_reference_structure(
             srt_content,
             result_text,
             "typo and punctuation correction output",
         )
-        print("  -> SRT validation passed: block count, indices, and timestamps unchanged.")
+        result_text = srt_result.text
+        print("  -> SRT validation passed: block count unchanged.")
+        if srt_result.repaired_indices or srt_result.repaired_timestamps:
+            print(
+                "  -> Restored SRT structure from source: "
+                f"{srt_result.repaired_indices} index line(s), "
+                f"{srt_result.repaired_timestamps} timestamp line(s)."
+            )
     except SrtValidationError as e:
         print(f"  [SRT validation failed] {e}")
         raise

@@ -4,7 +4,7 @@ Dịch nội dung SRT sang ngôn ngữ đích bằng AI.
 
 import os
 from core.ai_client import generate_with_failover, clean_markdown_response
-from utils.srt_validation import SrtValidationError, coerce_validated_srt
+from utils.srt_validation import SrtValidationError, coerce_srt_to_reference_structure
 
 
 def get_translate_prompt(srt_text: str, target_lang_code: str) -> str:
@@ -84,12 +84,19 @@ def translate_srt(
     )
     result_text = clean_markdown_response(result_text)
     try:
-        result_text = coerce_validated_srt(
+        srt_result = coerce_srt_to_reference_structure(
             srt_content,
             result_text,
             "translation output",
         )
-        print("  -> SRT validation passed: block count, indices, and timestamps unchanged.")
+        result_text = srt_result.text
+        print("  -> SRT validation passed: block count unchanged.")
+        if srt_result.repaired_indices or srt_result.repaired_timestamps:
+            print(
+                "  -> Restored SRT structure from source: "
+                f"{srt_result.repaired_indices} index line(s), "
+                f"{srt_result.repaired_timestamps} timestamp line(s)."
+            )
     except SrtValidationError as e:
         print(f"  [SRT validation failed] {e}")
         raise

@@ -25,6 +25,13 @@ class SrtBlock:
     text_lines: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class SrtCoercionResult:
+    text: str
+    repaired_indices: int
+    repaired_timestamps: int
+
+
 def normalize_srt_text(text: str) -> str:
     """Normalize line endings and ensure the SRT text ends with one newline."""
     normalized = text.replace("\r\n", "\n").replace("\r", "\n").strip()
@@ -85,6 +92,15 @@ def parse_srt_structure(text: str, label: str = "SRT") -> list[SrtBlock]:
     return blocks
 
 
+def _format_srt_blocks(blocks: list[SrtBlock]) -> str:
+    rendered_blocks: list[str] = []
+    for block in blocks:
+        rendered_blocks.append(
+            "\n".join((block.index, block.timestamp, *block.text_lines))
+        )
+    return "\n\n".join(rendered_blocks) + "\n"
+
+
 def validate_srt_structure(
     reference_text: str,
     candidate_text: str,
@@ -132,5 +148,54 @@ def coerce_validated_srt(
     task_label: str = "AI SRT output",
 ) -> str:
     """Validate candidate SRT and return it with normalized line endings."""
-    validate_srt_structure(reference_text, candidate_text, task_label)
-    return normalize_srt_text(candidate_text)
+    return coerce_srt_to_reference_structure(
+        reference_text,
+        candidate_text,
+        task_label,
+    ).text
+
+
+def coerce_srt_to_reference_structure(
+    reference_text: str,
+    candidate_text: str,
+    task_label: str = "AI SRT output",
+) -> SrtCoercionResult:
+    """
+    Keep AI-edited subtitle text but force index/timestamp lines from reference.
+
+    This fixes common AI mistakes such as changing `00:04:12,659` into
+    `00:14:12,659` while still failing hard if the AI merged, split, removed, or
+    added subtitle blocks.
+    """
+    reference_blocks = parse_srt_structure(reference_text, "reference SRT")
+    candidate_blocks = parse_srt_structure(candidate_text, task_label)
+
+    if len(candidate_blocks) != len(reference_blocks):
+        raise SrtValidationError(
+            f"{task_label}: block count changed: expected "
+            f"{len(reference_blocks)}, got {len(candidate_blocks)}."
+        )
+
+    repaired_indices = 0
+    repaired_timestamps = 0
+    coerced_blocks: list[SrtBlock] = []
+
+    for expected, actual in zip(reference_blocks, candidate_blocks):
+        if actual.index != expected.index:
+            repaired_indices += 1
+        if actual.timestamp != expected.timestamp:
+            repaired_timestamps += 1
+
+        coerced_blocks.append(
+            SrtBlock(
+                index=expected.index,
+                timestamp=expected.timestamp,
+                text_lines=actual.text_lines,
+            )
+        )
+
+    return SrtCoercionResult(
+        text=_format_srt_blocks(coerced_blocks),
+        repaired_indices=repaired_indices,
+        repaired_timestamps=repaired_timestamps,
+    )

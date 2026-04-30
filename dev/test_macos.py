@@ -1,3 +1,7 @@
+"""
+Test script for converting a video to 9:16 with FFmpeg on macOS only.
+"""
+
 import subprocess
 import threading
 import time
