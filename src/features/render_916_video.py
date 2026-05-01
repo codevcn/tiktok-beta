@@ -176,12 +176,12 @@ def convert_169_to_916(
         if top_text:
             drawtext_filters.append(
                 f"drawtext=text='{top_text}':fontcolor={fontcolor}:fontsize={fontsize}{box_str}"
-                f":x=(w-text_w)/2:y={pad_h}-text_h-10:fontfile='{font_path}'"
+                f":x=(w-text_w)/2:y={pad_h}-text_h-40:fontfile='{font_path}'"
             )
         if bottom_text:
             drawtext_filters.append(
                 f"drawtext=text='{bottom_text}':fontcolor={fontcolor}:fontsize={max(10, fontsize-10)}{box_str}"
-                f":x=(w-text_w)/2:y=h-{pad_h}+10:fontfile='{font_path}'"
+                f":x=(w-text_w)/2:y=h-{pad_h}+40:fontfile='{font_path}'"
             )
         filter_complex += ";" + "[combined]" + ",".join(drawtext_filters) + "[v]"
         out_map = "[v]"
