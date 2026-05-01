@@ -1,10 +1,9 @@
 """
 Pipeline tự động xử lý video từ flow-inputs.json.
 
-Mỗi link có thể có nhiều flow xử lý tuần tự.
-Các bước chung (download, xóa watermark, tách audio, transcribe, sửa typo)
-chỉ chạy MỘT LẦN. Sau đó từng flow chạy riêng phần dịch/burn subtitle,
-và mỗi flow đều xuất phát từ video gốc (sau download + xóa watermark).
+Tất cả các bước xử lý (download, xóa watermark, tách audio, transcribe, sửa typo,
+dịch thuật, ghép phụ đề, chuyển đổi 9:16) đều thuộc cùng một pipeline duy nhất,
+chạy tuần tự từ đầu đến cuối cho mỗi link.
 
 [link từ flow-inputs.json]
     --> [download video bằng yt-dlp]
@@ -31,7 +30,6 @@ from features.burn_ass_subtitle import burn_subtitle_to_video
 from features.remove_watermark import remove_watermark
 from features.render_916_video import convert_169_to_916
 from utils.helpers import download_video, extract_video_id, load_env, load_links_config
-from configs.configs import VALID_FLOWS
 
 # ============================================================
 # TIỆN ÍCH ĐO THỜI GIAN
@@ -102,11 +100,6 @@ def process_one_link(link_entry: dict, base_output_dir: str, use_gpu: bool) -> N
     target_lang_code = link_entry.get("target_lang_code", "vi")
     subtitle_configs = link_entry.get("subtitle_configs", {})
     watermark_config = link_entry.get("watermark")  # None nếu không có field này
-    flows = link_entry.get("flows", [])
-
-    if not flows:
-        print("⚠️  Không có flow nào được cấu hình cho link này → bỏ qua.")
-        return
 
     # Tạo thư mục output riêng cho link này theo timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -165,85 +158,59 @@ def process_one_link(link_entry: dict, base_output_dir: str, use_gpu: bool) -> N
     with _timed_step("Sửa typo (AI)", timings):
         fix_typos_in_srt(srt_raw_path, srt_fixed_path)
 
-    # ============================================================
-    # PHẦN RIÊNG — lặp qua từng flow
-    # ============================================================
+    # --- Bước 5: Dịch thuật ---
+    # Logic: nếu original_lang_code trùng target_lang_code -> không dịch
+    if original_lang_code and original_lang_code.lower() == target_lang_code.lower():
+        do_translate = False
+    else:
+        do_translate = True
 
-    total_flows = len(flows)
-    print(f"\n{'═' * 60}")
-    print(f"  📋 Tổng số flow cần chạy: {total_flows}")
-    print(f"{'═' * 60}")
+    video_out_path = os.path.join(output_dir, "output_burn_sub.mp4")
 
-    for flow_idx, flow_entry in enumerate(flows, 1):
-        flow_name = flow_entry.get("name", "")
+    if do_translate:
+        # Dịch SRT → burn
+        srt_translated_path = os.path.join(output_dir, "translated_subtitle.srt")
+        print(f"\n  --- BƯỚC 5: DỊCH THUẬT SANG [{target_lang_code.upper()}] ---")
+        with _timed_step(f"Dịch thuật → {target_lang_code}", timings):
+            translate_srt(srt_fixed_path, srt_translated_path, target_lang_code)
+        srt_for_burn = srt_translated_path
+    else:
+        print(f"\n  ℹ️  Không dịch thuật → dùng SRT đã sửa typo.")
+        srt_for_burn = srt_fixed_path
 
-        if flow_name not in VALID_FLOWS:
-            print(f"\n  ⚠️  Flow không hợp lệ: '{flow_name}' → bỏ qua.")
-            print(f"      Các flow hợp lệ: {VALID_FLOWS}")
-            continue
+    # --- Bước 6: Ghép phụ đề ---
+    print(f"\n  --- BƯỚC 6: GHÉP PHỤ ĐỀ VÀO VIDEO ---")
+    with _timed_step(f"Burn subtitle", timings):
+        burn_subtitle_to_video(
+            srt_for_burn,
+            base_video_path,
+            video_out_path,
+            subtitle_configs,
+            use_gpu=use_gpu,
+        )
 
-        # Logic: nếu original_lang_code trùng target_lang_code -> không dịch
-        if (
-            original_lang_code
-            and original_lang_code.lower() == target_lang_code.lower()
-        ):
-            do_translate = False
-        else:
-            do_translate = True
+    # --- Bước 7: Convert 9:16 ---
+    print(f"\n  --- BƯỚC 7: CHUYỂN ĐỔI SANG 9:16 ---")
+    video_916_path = os.path.join(output_dir, "output_916.mp4")
+    caption_configs = link_entry.get("caption_configs", {})
 
-        flow_label = f"FLOW {flow_idx}/{total_flows}"
-        print(f"\n{'─' * 60}")
-        print(f"  🔄 {flow_label}: {flow_name}")
-        print(f"{'─' * 60}")
+    if sys.platform.startswith("win"):
+        platform_name = "windows"
+    elif sys.platform.startswith("darwin"):
+        platform_name = "macos"
+    else:
+        platform_name = "linux"
 
-        # Tên file output riêng cho flow này
-        flow_suffix = f"flow{flow_idx}_{flow_name}"
-        video_out_path = os.path.join(output_dir, f"output_{flow_suffix}.mp4")
+    with _timed_step(f"Convert 9:16", timings):
+        convert_169_to_916(
+            input_file=video_out_path,
+            output_file=video_916_path,
+            caption_configs=caption_configs,
+            use_gpu=use_gpu,
+            platform=platform_name,
+        )
 
-        if do_translate:
-            # Dịch SRT → burn
-            srt_translated_path = os.path.join(
-                output_dir, f"translated_subtitle_{flow_suffix}.srt"
-            )
-            print(
-                f"\n  --- {flow_label} | DỊCH THUẬT SANG [{target_lang_code.upper()}] ---"
-            )
-            with _timed_step(
-                f"[{flow_label}] Dịch thuật → {target_lang_code}", timings
-            ):
-                translate_srt(srt_fixed_path, srt_translated_path, target_lang_code)
-            srt_for_burn = srt_translated_path
-        else:
-            print(f"\n  ℹ️  {flow_label}: Không dịch thuật → dùng SRT đã sửa typo.")
-            srt_for_burn = srt_fixed_path
-
-        # Burn phụ đề vào video gốc (base_video_path)
-        print(f"\n  --- {flow_label} | GHÉP PHỤ ĐỀ VÀO VIDEO ---")
-        with _timed_step(f"[{flow_label}] Burn subtitle", timings):
-            burn_subtitle_to_video(
-                srt_for_burn,
-                base_video_path,
-                video_out_path,
-                subtitle_configs,
-                use_gpu=use_gpu,
-            )
-
-        # Chuyển đổi video 16:9 (đã burn sub) thành 9:16
-        print(f"\n  --- {flow_label} | CHUYỂN ĐỔI SANG 9:16 ---")
-        video_916_path = os.path.join(output_dir, f"output_916_{flow_suffix}.mp4")
-        caption_configs = link_entry.get("caption_configs", {})
-        platform_name = "windows" if sys.platform == "win32" else "macos"
-
-        with _timed_step(f"[{flow_label}] Convert 9:16", timings):
-            convert_169_to_916(
-                input_file=video_out_path,
-                output_file=video_916_path,
-                caption_configs=caption_configs,
-                use_gpu=use_gpu,
-                platform=platform_name,
-            )
-
-        print(f"\n  ✅ {flow_label}: Hoàn tất → {video_916_path}")
+    print(f"\n  ✅ Hoàn tất → {video_916_path}")
 
     # Dọn dẹp: xóa audio trung gian
     if os.path.exists(audio_tmp_path):
@@ -293,12 +260,9 @@ def main() -> None:
 
     for idx, link_entry in enumerate(links, 1):
         link = link_entry.get("link", "")
-        flows = link_entry.get("flows", [])
-        flow_names = [f.get("name", "?") for f in flows]
 
         print(f"\n{'='*60}")
         print(f"🔗 [{idx}/{len(links)}] Đang xử lý: {link}")
-        print(f"   Flows: {flow_names}")
         print("=" * 60)
 
         try:

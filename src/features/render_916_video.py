@@ -109,7 +109,7 @@ def convert_169_to_916(
         else:
             encoder_opts = ["-c:v", "libx264", "-preset", "fast", "-crf", "23"]
             print("  → Encoder: libx264 (CPU Windows)")
-    else:
+    elif platform.lower() == "macos":
         font_path = "/System/Library/Fonts/Supplemental/Arial.ttf"
         if use_gpu:
             encoder_opts = ["-c:v", "h264_videotoolbox", "-b:v", "8M"]
@@ -117,6 +117,17 @@ def convert_169_to_916(
         else:
             encoder_opts = ["-c:v", "libx264", "-preset", "fast", "-crf", "23"]
             print("  → Encoder: libx264 (CPU macOS)")
+    else:
+        # Linux (vd: Kaggle, WSL)
+        font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+        if not os.path.exists(font_path):
+            font_path = "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
+        if use_gpu:
+            encoder_opts = ["-c:v", "h264_nvenc", "-preset", "p4", "-cq", "23"]
+            print("  → Encoder: h264_nvenc (GPU Linux)")
+        else:
+            encoder_opts = ["-c:v", "libx264", "-preset", "fast", "-crf", "23"]
+            print("  → Encoder: libx264 (CPU Linux)")
 
     # 2. Tính toán kích thước (Mục tiêu 1080x1920)
     target_w, target_h = 1080, 1920

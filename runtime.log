@@ -1,13 +1,47 @@
-input.mp4: No such file or directory
-Traceback (most recent call last):
-  File "/kaggle/working/tiktok-beta/dev/test_windows.py", line 143, in <module>
-    convert_916(
-  File "/kaggle/working/tiktok-beta/dev/test_windows.py", line 35, in convert_916
-    total_duration = float(subprocess.check_output(probe_cmd).strip())
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/subprocess.py", line 466, in check_output
-    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/subprocess.py", line 571, in run
-    raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command '['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', 'input.mp4']' returned non-zero exit status 1.
+  [100%] Hoàn tất transcribe → data/video/output/vid-3mxblcBZgqM-20260501_192504/raw_subtitle.srt
+  ⏱  Transcribe: 1m 10s
+
+--- BƯỚC 4: SỬA LỖI CHÍNH TẢ BẰNG AI ---
+🤖 Đang gửi phụ đề để sửa lỗi chính tả...
+
+  🤖 [Sửa lỗi chính tả] Bắt đầu gọi AI (Multi-Tier Failover)
+  ──────────────────────────────────────────────────
+
+  📡 Tier 1/4: Gemini 2.5 Flash (gemini)
+  🔄 [Gemini 2.5 Flash] Lần thử 1/3...
+  ✅ [Gemini 2.5 Flash] Phản hồi thành công!
+  -> SRT validation passed: block count unchanged.
+  -> Restored SRT structure from source: 0 index line(s), 1 timestamp line(s).
+  ✅ Sửa lỗi hoàn tất → data/video/output/vid-3mxblcBZgqM-20260501_192504/fixed_subtitle.srt
+  ⏱  Sửa typo (AI): 1m 17s
+
+════════════════════════════════════════════════════════════
+  📋 Tổng số flow cần chạy: 1
+════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────
+  🔄 FLOW 1/1: burn_sub_to_video
+────────────────────────────────────────────────────────────
+
+  ℹ️  FLOW 1/1: Không dịch thuật → dùng SRT đã sửa typo.
+
+  --- FLOW 1/1 | GHÉP PHỤ ĐỀ VÀO VIDEO ---
+  → Chuyển đổi SRT → ASS và áp dụng định dạng...
+  → Đã tạo: data/video/output/vid-3mxblcBZgqM-20260501_192504/fixed_subtitle.ass
+  -> Encoder: h264_nvenc (GPU), fallback CPU if unavailable
+  ✅ Burn subtitle (GPU): 100%                                    B    
+  → Đã lưu: data/video/output/vid-3mxblcBZgqM-20260501_192504/output_flow1_burn_sub_to_video.mp4
+  → Đã xóa file ASS tạm: data/video/output/vid-3mxblcBZgqM-20260501_192504/fixed_subtitle.ass
+  ⏱  [FLOW 1/1] Burn subtitle: 24.1s
+
+  --- FLOW 1/1 | CHUYỂN ĐỔI SANG 9:16 ---
+
+🎬 BẮT ĐẦU CHUYỂN ĐỔI VIDEO 16:9 SANG 9:16
+  → Input: data/video/output/vid-3mxblcBZgqM-20260501_192504/output_flow1_burn_sub_to_video.mp4
+  → Output: data/video/output/vid-3mxblcBZgqM-20260501_192504/output_916_flow1_burn_sub_to_video.mp4
+  → Encoder: h264_videotoolbox (GPU macOS)
+
+
+❌ FFmpeg lỗi trong quá trình render (Exit code: 8)
+
+❌ Lỗi khi xử lý link [https://youtu.be/3mxblcBZgqM]: Command '['ffmpeg', '-y', '-i', 'data/video/output/vid-3mxblcBZgqM-20260501_192504/output_flow1_burn_sub_to_video.mp4', '-filter_complex', "[0:v]split=2[main][temp];[temp]trim=start_frame=0:end_frame=1,loop=loop=9999:size=1,setpts=PTS-STARTPTS,boxblur=25:1,split=2[blurred1][blurred2];[blurred1]scale=1080:656:force_original_aspect_ratio=increase,crop=1080:656[tp];[blurred2]scale=1080:656:force_original_aspect_ratio=increase,crop=1080:656[bp];[main]scale=1080:608[mid];[tp][mid][bp]vstack=inputs=3[combined];[combined]drawtext=text='Hook Caption':fontcolor=black:fontsize=70:box=1:boxcolor=white:boxborderw=20:x=(w-text_w)/2:y=656-text_h-10:fontfile='/System/Library/Fonts/Supplemental/Arial.ttf',drawtext=text='Part Index':fontcolor=black:fontsize=60:box=1:boxcolor=white:boxborderw=20:x=(w-text_w)/2:y=h-656+10:fontfile='/System/Library/Fonts/Supplemental/Arial.ttf'[v]", '-map', '[v]', '-map', '0:a?', '-c:v', 'h264_videotoolbox', '-b:v', '8M', '-c:a', 'copy', '-shortest', '-movflags', '+faststart', 'data/video/output/vid-3mxblcBZgqM-20260501_192504/output_916_flow1_burn_sub_to_video.mp4']' returned non-zero exit status 8.
