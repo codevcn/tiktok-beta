@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 _BLOCK_SEPARATOR_RE = re.compile(r"\n\s*\n")
 _TIMESTAMP_RE = re.compile(
-    r"^\d{2}:\d{2}:\d{2},\d{3}\s+-->\s+\d{2}:\d{2}:\d{2},\d{3}(?:\s+.*)?$"
+    r"^\d{1,3}:\d{1,2}:\d{1,2}[,\.]\d{1,3}\s*-->\s*\d{1,3}:\d{1,2}:\d{1,2}[,\.]\d{1,3}(?:\s+.*)?$"
 )
 
 
