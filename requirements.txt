@@ -2,7 +2,12 @@ pysubs2
 google-genai
 faster-whisper
 yt-dlp
+aria2
+curl-cffi
 openai
+
+# aria2 provides the aria2c CLI used by yt-dlp --downloader aria2c.
+# curl-cffi enables yt-dlp --impersonate chrome.
 
 # --- NVIDIA CUDA 12 Libraries ---
 nvidia-cublas-cu12

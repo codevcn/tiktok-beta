@@ -4,6 +4,7 @@ Tiện ích dùng chung cho các feature module.
 
 import os
 import re
+import shutil
 import subprocess
 from urllib.parse import urlparse, parse_qs
 import json
@@ -87,28 +88,44 @@ def run_ffmpeg_with_progress(command: list, label: str = "Đang xử lý") -> No
 
 def download_video(link: str, output_dir: str) -> str:
     """
-    Tải video từ URL bằng yt-dlp ở chất lượng 720p, lưu vào output_dir.
-    Để yt-dlp tự in progress (%, speed, ETA) ra terminal.
+    Tải video từ URL bằng yt-dlp + aria2c ở chất lượng 720p, lưu vào output_dir.
+    Để yt-dlp/aria2c tự in progress (%, speed, ETA) ra terminal.
     Sau khi tải xong, scan thư mục để lấy đường dẫn file video.
 
     Format ưu tiên:
       1. Video <=720p (mp4) + audio (m4a) riêng rồi merge
       2. File tổng hợp sẵn (mp4) tối đa 720p
-      3. Fallback: bất kỳ chất lượng nào có thể tải được
+      3. aria2c tải song song nhiều connection để tăng tốc download
     """
-    print(f"📥 Đang tải video (720p) từ: {link}")
+    print(f"📥 Đang tải video (720p, aria2c) từ: {link}")
+
+    print("  -> Downloader: aria2c (-N 4, -x 8, -s 8, -k 1M), impersonate chrome")
+
+    if shutil.which("aria2c") is None:
+        raise FileNotFoundError(
+            "Khong tim thay aria2c trong PATH. "
+            "Hay cai aria2/aria2c truoc khi chay download nhanh "
+            "(Windows: winget install aria2.aria2 hoac choco install aria2; "
+            "macOS: brew install aria2)."
+        )
 
     output_template = os.path.join(output_dir, "%(id)s.%(ext)s")
 
     command = [
         "yt-dlp",
         "--no-playlist",
+        "-N",
+        "4",
+        "--downloader",
+        "aria2c",
+        "--downloader-args",
+        "aria2c:-x 8 -s 8 -k 1M",
+        "--impersonate",
+        "chrome",
         "-f",
         (
             "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]"
-            "/best[height<=720][ext=mp4]"
             "/best[height<=720]"
-            "/best"
         ),
         "-o",
         output_template,
