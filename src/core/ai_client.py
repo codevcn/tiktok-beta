@@ -14,7 +14,6 @@ import os
 import time
 from dataclasses import dataclass
 
-
 # ============================================================
 # CẤU HÌNH CÁC TIER
 # ============================================================
@@ -33,7 +32,7 @@ class TierConfig:
     env_key: str  # Tên biến môi trường chứa API key
 
 
-# Danh sách tier theo thứ tự ưu tiên
+# Danh sách tier theo thứ tự ưu tiên (sắp xếp từ model tốt nhất đến ít tốt hơn theo nhu cầu của project)
 TIERS = [
     TierConfig(
         name="Gemini 2.5 Flash",
@@ -45,6 +44,15 @@ TIERS = [
         env_key="GOOGLE_API_KEY",
     ),
     TierConfig(
+        name="OpenAI GPT-5.4-mini",
+        provider="openai",
+        model="gpt-5.4-mini",
+        max_retries=2,
+        backoff_base=2.0,
+        backoff_max=30.0,
+        env_key="OPENAI_API_KEY",
+    ),
+    TierConfig(
         name="Gemini 3 Flash Preview",
         provider="gemini",
         model="gemini-3-flash-preview",
@@ -52,6 +60,15 @@ TIERS = [
         backoff_base=2.0,
         backoff_max=60.0,
         env_key="GOOGLE_API_KEY",
+    ),
+    TierConfig(
+        name="OpenAI GPT-5-mini",
+        provider="openai",
+        model="gpt-5-mini",
+        max_retries=2,
+        backoff_base=2.0,
+        backoff_max=30.0,
+        env_key="OPENAI_API_KEY",
     ),
     TierConfig(
         name="Gemini 2.5 Flash Lite",
@@ -63,9 +80,9 @@ TIERS = [
         env_key="GOOGLE_API_KEY",
     ),
     TierConfig(
-        name="OpenAI GPT-4o-mini",
+        name="OpenAI GPT-4.1-mini",
         provider="openai",
-        model="gpt-4o-mini",
+        model="gpt-4.1-mini",
         max_retries=2,
         backoff_base=2.0,
         backoff_max=30.0,
