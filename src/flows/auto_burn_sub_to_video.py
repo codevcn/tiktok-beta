@@ -8,13 +8,14 @@ và mỗi flow đều xuất phát từ video gốc (sau download + xóa waterma
 
 [link từ flow-inputs.json]
     --> [download video bằng yt-dlp]
-    --> [xóa watermark bằng ffmpeg delogo]  (*nếu có cấu hình watermark)
+    --> [xóa watermark bằng ffmpeg delogo] (conditional)
     --> [tách audio]
     --> [transcribe audio → SRT thô]
     --> [sửa lỗi chính tả SRT bằng AI]
-    --> Với mỗi flow trong danh sách flows:
-        --> [dịch SRT sang ngôn ngữ đích bằng AI]  (*nếu flow có translate)
-        --> [burn ASS subtitle vào video gốc]
+    --> [dịch SRT sang ngôn ngữ đích bằng AI] (conditional)
+    --> [burn ASS subtitle vào video gốc]
+    --> [chuyển đổi video sang 9:16 bằng render_916_video]
+    --> [tạo paper strip captions lên video]
 """
 
 import os
@@ -28,7 +29,9 @@ from features.fix_transcribe_typos import fix_typos_in_srt
 from features.translate_srt import translate_srt
 from features.burn_ass_subtitle import burn_subtitle_to_video
 from features.remove_watermark import remove_watermark
+from features.render_916_video import convert_169_to_916
 from utils.helpers import download_video, extract_video_id, load_env, load_links_config
+from configs.configs import VALID_FLOWS
 
 # ============================================================
 # TIỆN ÍCH ĐO THỜI GIAN
@@ -74,16 +77,6 @@ def _print_timing_summary(timings: list) -> None:
     print(f"{'─' * (width + 20)}")
     print(f"  {'TỔNG CỘNG':<{width}} {_fmt_duration(total):>8}")
     print(f"{'─' * (width + 20)}\n")
-
-
-# ============================================================
-# MAP TÊN FLOW → CÓ DỊCH HAY KHÔNG
-# ============================================================
-
-FLOW_TRANSLATE_MAP: dict[str, bool] = {
-    "burn_sub_to_video_with_translate": True,
-    "burn_sub_to_video_no_translate": False,
-}
 
 
 # ============================================================
@@ -183,12 +176,20 @@ def process_one_link(link_entry: dict, base_output_dir: str, use_gpu: bool) -> N
 
     for flow_idx, flow_entry in enumerate(flows, 1):
         flow_name = flow_entry.get("name", "")
-        do_translate = FLOW_TRANSLATE_MAP.get(flow_name)
 
-        if do_translate is None:
+        if flow_name not in VALID_FLOWS:
             print(f"\n  ⚠️  Flow không hợp lệ: '{flow_name}' → bỏ qua.")
-            print(f"      Các flow hợp lệ: {list(FLOW_TRANSLATE_MAP.keys())}")
+            print(f"      Các flow hợp lệ: {VALID_FLOWS}")
             continue
+
+        # Logic: nếu original_lang_code trùng target_lang_code -> không dịch
+        if (
+            original_lang_code
+            and original_lang_code.lower() == target_lang_code.lower()
+        ):
+            do_translate = False
+        else:
+            do_translate = True
 
         flow_label = f"FLOW {flow_idx}/{total_flows}"
         print(f"\n{'─' * 60}")
@@ -227,7 +228,22 @@ def process_one_link(link_entry: dict, base_output_dir: str, use_gpu: bool) -> N
                 use_gpu=use_gpu,
             )
 
-        print(f"\n  ✅ {flow_label}: Hoàn tất → {video_out_path}")
+        # Chuyển đổi video 16:9 (đã burn sub) thành 9:16
+        print(f"\n  --- {flow_label} | CHUYỂN ĐỔI SANG 9:16 ---")
+        video_916_path = os.path.join(output_dir, f"output_916_{flow_suffix}.mp4")
+        caption_configs = link_entry.get("caption_configs", {})
+        platform_name = "windows" if sys.platform == "win32" else "macos"
+
+        with _timed_step(f"[{flow_label}] Convert 9:16", timings):
+            convert_169_to_916(
+                input_file=video_out_path,
+                output_file=video_916_path,
+                caption_configs=caption_configs,
+                use_gpu=use_gpu,
+                platform=platform_name,
+            )
+
+        print(f"\n  ✅ {flow_label}: Hoàn tất → {video_916_path}")
 
     # Dọn dẹp: xóa audio trung gian
     if os.path.exists(audio_tmp_path):

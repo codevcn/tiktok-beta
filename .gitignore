@@ -8,3 +8,4 @@ __pycache__/
 output
 output-*.mp4
 output.mp4
+data/video/input/*.mp4

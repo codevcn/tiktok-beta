@@ -20,9 +20,18 @@
         "marginl": 0,
         "marginr": 0
       },
+      "caption_configs": {
+        "top_text": "Hook Caption",
+        "bottom_text": "Part Index",
+        "fontcolor": "black",
+        "fontsize": 70,
+        "box": 1,
+        "boxcolor": "white",
+        "boxborderw": 20
+      },
       "flows": [
         {
-          "name": "burn_sub_to_video_no_translate"
+          "name": "burn_sub_to_video"
         }
       ]
     }

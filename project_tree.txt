@@ -1,35 +1,61 @@
 Tree view of: D:\D-Documents\TOOLs\tiktok-beta
 
+├── .agents
+│   └── AGENTS.md
 ├── .env
 ├── .gitignore
 ├── data
+│   ├── assets
+│   │   └── ass-subtitle-paper-template.png
 │   └── video
 │       ├── input
-│       │   └── links.json
+│       │   └── flow-inputs.json
 │       └── output
-│           └── vid-70XSafYpaAA-20260428_014226
-│               └── download
-│                   └── 枯れたように見える植物も蘇る！すぐ効く自然肥料5選。昔の農家の秘密で植物がよみがえる、お金は一切かからない.mp4
+├── dev
+│   ├── input.mp4
+│   ├── output-916.mp4
+│   ├── output.mp4
+│   ├── test_kaggle.py
+│   ├── test_macos.py
+│   └── test_windows.py
 ├── dev.cmd
 ├── doc
-│   └── lang-code.md
+│   ├── lang-code.md
+│   ├── rules
+│   │   ├── features-are-able-to-run-on-gpu.md
+│   │   ├── file-flow-inputs.md
+│   │   └── translate-prompt.md
+│   └── setup-macos.md
 ├── ins.cmd
+├── issues
+│   ├── (solved)-GEMINI_REQUEST_ISSUE.md
+│   ├── (solved)-GPU_TRANSCRIBE_ISSUE.md
+│   ├── (solved)-MAKE_619_VID_TO_916_VID_ISSUE.md
+│   ├── (solved)-PUNCTUATION-MARKS-ISSUE.md
+│   ├── CREATE-PAPER-TEMPLATE-SUBTITLE.md
+│   └── IMPROVEMENT-POINTS-ISSUE.md
 ├── print_project_tree.py
 ├── project_tree.txt
+├── pyrightconfig.json
 ├── requirements.txt
-├── rules
-│   ├── file-links-json.md
-│   └── translate-prompt.md
 ├── runtime.log
+├── scripts
+│   └── edit_flow_inputs.py
 ├── src
-│   ├── auto_burn_sub_to_video_no_translate.py
-│   ├── auto_burn_sub_to_video_with_translate.py
+│   ├── core
+│   │   └── ai_client.py
 │   ├── features
+│   │   ├── _transcribe_worker.py
 │   │   ├── burn_ass_subtitle.py
 │   │   ├── extract_audio_from_video.py
 │   │   ├── fix_transcribe_typos.py
 │   │   ├── remove_watermark.py
 │   │   ├── transcribe_audio_file.py
 │   │   └── translate_srt.py
-│   └── main.py
+│   ├── flows
+│   │   └── auto_burn_sub_to_video.py
+│   ├── main.py
+│   └── utils
+│       ├── helpers.py
+│       └── srt_validation.py
 └── venv.cmd
